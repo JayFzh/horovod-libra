@@ -12,9 +12,8 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import from "../lobster/"
-import monster_test_generated
-import optional_scalars_generated
+include from "../lobster/"
+include "monster_test_generated.lobster"
 
 def check_read_buffer(buf):
     // CheckReadBuffer checks that the given buffer is evaluated correctly as the example Monster.
@@ -71,10 +70,9 @@ def make_monster_from_generated_code():
 
     let inv = b.MyGame_Example_MonsterCreateInventoryVector([ 0, 1, 2, 3, 4 ])
 
-    let mon2 = MyGame_Example_MonsterBuilder { b }
-        .start()
-        .add_name(fred)
-        .end()
+    b.MyGame_Example_MonsterStart()
+    b.MyGame_Example_MonsterAddName(fred)
+    let mon2 = b.MyGame_Example_MonsterEnd()
 
     b.MyGame_Example_MonsterStartTest4Vector(2)
     b.MyGame_Example_CreateTest(10, 20)
@@ -90,81 +88,22 @@ def make_monster_from_generated_code():
     let vector_of_doubles = b.MyGame_Example_MonsterCreateVectorOfDoublesVector(
                                 [ -1.7976931348623157e+308, 0, 1.7976931348623157e+308 ])
 
-    let mon = MyGame_Example_MonsterBuilder { b }
-        .start()
-        .add_pos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0,
-                 MyGame_Example_Color_Green, 5, 6))
-        .add_hp(80)
-        .add_name(name)
-        .add_inventory(inv)
-        .add_test_type(MyGame_Example_Any_Monster)
-        .add_test(mon2)
-        .add_test4(test4)
-        .add_testarrayofstring(test_array_of_string)
-        .add_vector_of_longs(vector_of_longs)
-        .add_vector_of_doubles(vector_of_doubles)
-        .end()
+    b.MyGame_Example_MonsterStart()
+    b.MyGame_Example_MonsterAddPos(b.MyGame_Example_CreateVec3(1.0, 2.0, 3.0, 3.0, 2, 5, 6))
+    b.MyGame_Example_MonsterAddHp(80)
+    b.MyGame_Example_MonsterAddName(name)
+    b.MyGame_Example_MonsterAddInventory(inv)
+    b.MyGame_Example_MonsterAddTestType(MyGame_Example_Any_Monster)
+    b.MyGame_Example_MonsterAddTest(mon2)
+    b.MyGame_Example_MonsterAddTest4(test4)
+    b.MyGame_Example_MonsterAddTestarrayofstring(test_array_of_string)
+    b.MyGame_Example_MonsterAddVectorOfLongs(vector_of_longs)
+    b.MyGame_Example_MonsterAddVectorOfDoubles(vector_of_doubles)
+    let mon = b.MyGame_Example_MonsterEnd()
 
     b.Finish(mon)
 
     return b.SizedCopy()
-
-def test_optional_scalars():
-    def build(add_fields):
-        let b = flatbuffers_builder {}
-        let ss = optional_scalars_ScalarStuffBuilder { b }.start()
-        if add_fields:
-            ss.add_just_i8(1)
-            ss.add_maybe_i8(1)
-            ss.add_default_i8(1)
-            ss.add_just_f64(1.0)
-            ss.add_maybe_f64(1.0)
-            ss.add_default_f64(1.0)
-            ss.add_just_bool(true)
-            ss.add_maybe_bool(true)
-            ss.add_default_bool(true)
-            ss.add_just_enum(optional_scalars_OptionalByte_Two)
-            ss.add_maybe_enum(optional_scalars_OptionalByte_Two)
-            ss.add_default_enum(optional_scalars_OptionalByte_Two)
-        b.Finish(ss.end())
-        return optional_scalars_GetRootAsScalarStuff(b.SizedCopy())
-
-    var root = build(true)
-
-    assert root.just_i8() == 1 and root.default_i8() == 1
-    var maybe_val_i8, maybe_present_i8 = root.maybe_i8()
-    assert maybe_val_i8 == 1 and maybe_present_i8 == true
-
-    assert root.just_f64() == 1.0 and root.default_f64() == 1.0
-    var maybe_val_f64, maybe_present_f64 = root.maybe_f64()
-    assert maybe_val_f64 == 1.0 and maybe_present_f64 == true
-
-    assert root.just_bool() == true and root.default_bool() == true
-    var maybe_val_bool, maybe_present_bool = root.maybe_bool()
-    assert maybe_val_bool == true and maybe_present_bool == true
-
-    assert root.just_enum() == optional_scalars_OptionalByte_Two and root.default_enum() == optional_scalars_OptionalByte_Two
-    var maybe_val_enum, maybe_present_enum = root.maybe_enum()
-    assert maybe_val_enum == optional_scalars_OptionalByte_Two and maybe_present_enum == true
-
-    root = build(false)
-
-    assert root.just_i8() == 0 and root.default_i8() == 42
-    maybe_val_i8, maybe_present_i8 = root.maybe_i8()
-    assert maybe_val_i8 == 0 and maybe_present_i8 == false
-
-    assert root.just_f64() == 0.0 and root.default_f64() == 42.0
-    maybe_val_f64, maybe_present_f64 = root.maybe_f64()
-    assert maybe_val_f64 == 0.0 and maybe_present_f64 == false
-
-    assert root.just_bool() == false and root.default_bool() == true
-    maybe_val_bool, maybe_present_bool = root.maybe_bool()
-    assert maybe_val_bool == false and maybe_present_bool == false
-
-    assert root.just_enum() == optional_scalars_OptionalByte_None and root.default_enum() == optional_scalars_OptionalByte_One
-    maybe_val_enum, maybe_present_enum = root.maybe_enum()
-    assert maybe_val_enum == optional_scalars_OptionalByte_None and maybe_present_enum == false
-
 
 // Verify that the canonical flatbuffer file (produced by the C++ implementation)
 // is readable by the generated Lobster code.
@@ -180,19 +119,16 @@ check_read_buffer(fb1)
 write_file("monsterdata_lobster_wire.mon", fb1)
 
 // Test converting the buffer to JSON and parsing the JSON back again.
-let schema = read_file("monster_test.fbs")
+schema := read_file("monster_test.fbs")
 assert schema
-let includedirs = [ "include_test" ]
+includedirs := [ "include_test" ]
 // Convert binary to JSON:
-let json, err1 = flatbuffers_binary_to_json(schema, fb1, includedirs)
+json, err1 := flatbuffers_binary_to_json(schema, fb1, includedirs)
 assert not err1
 // Parse JSON back to binary:
-let fb3, err2 = flatbuffers_json_to_binary(schema, json, includedirs)
+fb3, err2 := flatbuffers_json_to_binary(schema, json, includedirs)
 assert not err2
 // Check the resulting binary again (full roundtrip test):
 check_read_buffer(fb3)
-
-// Additional tests.
-test_optional_scalars()
 
 print "Lobster test succesful!"

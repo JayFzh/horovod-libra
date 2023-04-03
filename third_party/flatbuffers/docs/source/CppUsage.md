@@ -35,7 +35,7 @@ The test code itself is located in
 [test.cpp](https://github.com/google/flatbuffers/blob/master/tests/test.cpp).
 
 This test file is built alongside `flatc`. To review how to build the project,
-please read the [Building](@ref flatbuffers_guide_building) documentation.
+please read the [Building](@ref flatbuffers_guide_building) documenation.
 
 To run the tests, execute `flattests` from the root `flatbuffers/` directory.
 For example, on [Linux](https://en.wikipedia.org/wiki/Linux), you would simply
@@ -114,15 +114,15 @@ To use:
     MonsterT monsterobj;
 
     // Deserialize from buffer into object.
-    GetMonster(flatbuffer)->UnPackTo(&monsterobj);
+    UnPackTo(&monsterobj, flatbuffer);
 
     // Update object directly like a C++ class instance.
-    cout << monsterobj.name;  // This is now a std::string!
-    monsterobj.name = "Bob";  // Change the name.
+    cout << monsterobj->name;  // This is now a std::string!
+    monsterobj->name = "Bob";  // Change the name.
 
     // Serialize into new flatbuffer.
     FlatBufferBuilder fbb;
-    fbb.Finish(Monster::Pack(fbb, &monsterobj));
+    Pack(fbb, &monsterobj);
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 The following attributes are specific to the object-based API code generation:
@@ -133,11 +133,11 @@ The following attributes are specific to the object-based API code generation:
     This attribute changes the member declaration to use the type directly
     rather than wrapped in a unique_ptr.
 
--   `native_default("value")` (on a field): For members that are declared
+-   `native_default`: "value" (on a field): For members that are declared
     "native_inline", the value specified with this attribute will be included
     verbatim in the class constructor initializer list for this member.
 
--   `native_custom_alloc("custom_allocator")` (on a table or struct): When using the
+-   `native_custom_alloc`:"custom_allocator" (on a table or struct): When using the
     object-based API all generated NativeTables that  are allocated when unpacking
     your  flatbuffer will use "custom allocator". The allocator is also used by
     any std::vector that appears in a table defined with `native_custom_alloc`.
@@ -148,15 +148,12 @@ The following attributes are specific to the object-based API code generation:
 
     schema:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     table mytable(native_custom_alloc:"custom_allocator") {
       ...
     }
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-    with custom_allocator defined before `flatbuffers.h` is included, as:
+    with custom_allocator defined before flatbuffers.h is included, as:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
     template <typename T> struct custom_allocator : public std::allocator<T> {
 
       typedef T *pointer;
@@ -178,73 +175,48 @@ The following attributes are specific to the object-based API code generation:
       template <class U>
       custom_allocator(const custom_allocator<U>&) throw() {}
     };
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
--   `native_type("type")` (on a struct): In some cases, a more optimal C++ data
+-   `native_type`' "type" (on a struct): In some cases, a more optimal C++ data
     type exists for a given struct.  For example, the following schema:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    struct Vec2 {
-      x: float;
-      y: float;
-    }
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      struct Vec2 {
+        x: float;
+        y: float;
+      }
 
     generates the following Object-Based API class:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    struct Vec2T : flatbuffers::NativeTable {
-      float x;
-      float y;
-    };
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      struct Vec2T : flatbuffers::NativeTable {
+        float x;
+        float y;
+      };
 
     However, it can be useful to instead use a user-defined C++ type since it
     can provide more functionality, eg.
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    struct vector2 {
-      float x = 0, y = 0;
-      vector2 operator+(vector2 rhs) const { ... }
-      vector2 operator-(vector2 rhs) const { ... }
-      float length() const { ... }
-      // etc.
-    };
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      struct vector2 {
+        float x = 0, y = 0;
+        vector2 operator+(vector2 rhs) const { ... }
+        vector2 operator-(vector2 rhs) const { ... }
+        float length() const { ... }
+        // etc.
+      };
 
     The `native_type` attribute will replace the usage of the generated class
     with the given type.  So, continuing with the example, the generated
-    code would use `vector2` in place of `Vec2T` for all generated code of
-    the Object-Based API.
+    code would use |vector2| in place of |Vec2T| for all generated code.
 
-    However, because the `native_type` is unknown to flatbuffers, the user must
+    However, becuase the native_type is unknown to flatbuffers, the user must
     provide the following functions to aide in the serialization process:
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    namespace flatbuffers {
-      Vec2 Pack(const vector2& obj);
-      vector2 UnPack(const Vec2& obj);
-    }
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+      namespace flatbuffers {
+        FlatbufferStruct Pack(const native_type& obj);
+        native_type UnPack(const FlatbufferStruct& obj);
+      }
 
--   `native_type_pack_name("name")` (on a struct when `native_type` is
-    specified, too): when you want to use the same `native_type` multiple times
-    (e. g. with different precision) you must make the names of the Pack/UnPack
-    functions unique, otherwise you will run into compile errors. This attribute
-    appends a name to the expected Pack/UnPack functions. So when you
-    specify `native_type_pack_name("Vec2")` in the above example you now need to
-    implement these serialization functions instead:
+Finally, the following top-level attribute
 
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~{.cpp}
-    namespace flatbuffers {
-      Vec2 PackVec2(const vector2& obj);
-      vector2 UnPackVec2(const Vec2& obj);
-    }
-    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Finally, the following top-level attributes:
-
--   `native_include("path")` (at file level): Because the `native_type` attribute
+-   `native_include`: "path" (at file level): Because the `native_type` attribute
     can be used to introduce types that are unknown to flatbuffers, it may be
     necessary to include "external" header files in the generated code.  This
     attribute can be used to directly add an #include directive to the top of
@@ -283,24 +255,14 @@ you, so you'll have to manage their lifecycles manually.  To reference the
 pointer type specified by the `--cpp-ptr-type` argument to `flatc` from a
 flatbuffer field set the `cpp_ptr_type` attribute to `default_ptr_type`.
 
+
 # Using different string type.
 
 By default the object tree is built out of `std::string`, but you can
 influence this either globally (using the `--cpp-str-type` argument to
 `flatc`) or per field using the `cpp_str_type` attribute.
 
-The type must support T::c_str(), T::length() and T::empty() as member functions.
-
-Further, the type must be constructible from std::string, as by default a
-std::string instance is constructed and then used to initialize the custom
-string type. This behavior impedes efficient and zero-copy construction of
-custom string types; the `--cpp-str-flex-ctor` argument to `flatc` or the
-per field attribute `cpp_str_flex_ctor` can be used to change this behavior,
-so that the custom string type is constructed by passing the pointer and
-length of the FlatBuffers String. The custom string class will require a
-constructor in the following format: custom_str_class(const char *, size_t).
-Please note that the character array is not guaranteed to be NULL terminated,
-you should always use the provided size to determine end of string.
+The type must support T::c_str() and T::length() as member functions.
 
 ## Reflection (& Resizing)
 
@@ -327,7 +289,7 @@ And example of usage, for the time being, can be found in
 ## Mini Reflection
 
 A more limited form of reflection is available for direct inclusion in
-generated code, which doesn't do any (binary) schema access at all. It was designed
+generated code, which doesn't any (binary) schema access at all. It was designed
 to keep the overhead of reflection as low as possible (on the order of 2-6
 bytes per field added to your executable), but doesn't contain all the
 information the (binary) schema contains.
@@ -454,8 +416,6 @@ it, this will provide you an easy way to use that data directly.
 (see the schema documentation for some specifics on the JSON format
 accepted).
 
-Schema evolution compatibility for the JSON format follows the same rules as the binary format (JSON formatted data will be forwards/backwards compatible with schemas that evolve in a compatible way).
-
 There are two ways to use text formats:
 
 #### Using the compiler as a conversion tool
@@ -507,7 +467,7 @@ include paths. If not specified, any include statements try to resolve from
 the current directory.
 
 If there were any parsing errors, `Parse` will return `false`, and
-`Parser::error_` contains a human readable error string with a line number
+`Parser::err` contains a human readable error string with a line number
 etc, which you should present to the creator of that file.
 
 After each JSON file, the `Parser::fbb` member variable is the
@@ -576,63 +536,21 @@ locale-independent or locale-narrow functions `strtof_l`, `strtod_l`,
 These functions use specified locale rather than the global or per-thread
 locale instead. They are part of POSIX-2008 but not part of the C/C++
 standard library, therefore, may be missing on some platforms.
+
 The Flatbuffers library try to detect these functions at configuration and
 compile time:
-- CMake `"CMakeLists.txt"`:
-  - Check existence of `strtol_l` and `strtod_l` in the `<stdlib.h>`.
-- Compile-time `"/include/base.h"`:
-  - `_MSC_VER >= 1900`: MSVC2012 or higher if build with MSVC.
-  - `_XOPEN_SOURCE>=700`: POSIX-2008 if build with GCC/Clang.
+- `_MSC_VER >= 1900`: check MSVC2012 or higher for MSVC buid
+- `_XOPEN_SOURCE>=700`: check POSIX-2008 for GCC/Clang build
+- `check_cxx_symbol_exists(strtof_l stdlib.h)`: CMake check of `strtod_f`
 
 After detection, the definition `FLATBUFFERS_LOCALE_INDEPENDENT` will be
 set to `0` or `1`.
-To override or stop this detection use CMake `-DFLATBUFFERS_LOCALE_INDEPENDENT={0|1}`
-or predefine `FLATBUFFERS_LOCALE_INDEPENDENT` symbol.
 
-To test the compatibility of the Flatbuffers library with
-a specific locale use the environment variable `FLATBUFFERS_TEST_LOCALE`:
+It is possible to test the compatibility of the Flatbuffers library with
+a specific locale using the environment variable `FLATBUFFERS_TEST_LOCALE`:
 ```sh
 >FLATBUFFERS_TEST_LOCALE="" ./flattests
 >FLATBUFFERS_TEST_LOCALE="ru_RU.CP1251" ./flattests
 ```
-
-## Support of floating-point numbers
-The Flatbuffers library assumes that a C++ compiler and a CPU are
-compatible with the `IEEE-754` floating-point standard.
-The schema and json parser may fail if `fast-math` or `/fp:fast` mode is active.
-
-### Support of hexadecimal and special floating-point numbers
-According to the [grammar](@ref flatbuffers_grammar) `fbs` and `json` files
-may use hexadecimal and special (`NaN`, `Inf`) floating-point literals.
-The Flatbuffers uses `strtof` and `strtod` functions to parse floating-point
-literals. The Flatbuffers library has a code to detect a compiler compatibility
-with the literals. If necessary conditions are met the preprocessor constant
-`FLATBUFFERS_HAS_NEW_STRTOD` will be set to `1`.
-The support of floating-point literals will be limited at compile time
-if `FLATBUFFERS_HAS_NEW_STRTOD` constant is less than `1`.
-In this case, schemas with hexadecimal or special literals cannot be used.
-
-### Comparison of floating-point NaN values
-The floating-point `NaN` (`not a number`) is special value which
-representing an undefined or unrepresentable value.
-`NaN` may be explicitly assigned to variables, typically as a representation
-for missing values or may be a result of a mathematical operation.
-The `IEEE-754` defines two kind of `NaNs`:
-- Quiet NaNs, or `qNaNs`.
-- Signaling NaNs, or `sNaNs`.
-
-According to the `IEEE-754`, a comparison with `NaN` always returns
-an unordered result even when compared with itself. As a result, a whole
-Flatbuffers object will be not equal to itself if has one or more `NaN`.
-Flatbuffers scalar fields that have the default value are not actually stored
-in the serialized data but are generated in code (see [Writing a schema](@ref flatbuffers_guide_writing_schema)).
-Scalar fields with `NaN` defaults break this behavior.
-If a schema has a lot of `NaN` defaults the Flatbuffers can override
-the unordered comparison by the ordered: `(NaN==NaN)->true`.
-This ordered comparison is enabled when compiling a program with the symbol
-`FLATBUFFERS_NAN_DEFAULTS` defined.
-Additional computations added by `FLATBUFFERS_NAN_DEFAULTS` are very cheap
-if GCC or Clang used. These compilers have a compile-time implementation
-of `isnan` checking which MSVC does not.
 
 <br>

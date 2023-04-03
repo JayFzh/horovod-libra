@@ -2,14 +2,12 @@ package testing
 
 import (
 	"../../tests/MyGame/Example"
-	flatbuffers "github.com/google/flatbuffers/go"
 
 	"context"
 	"net"
 	"testing"
 
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/encoding"
 )
 
 type server struct{}
@@ -76,8 +74,7 @@ func TestGRPC(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to listen: %v", err)
 	}
-	ser := grpc.NewServer()
-	encoding.RegisterCodec(flatbuffers.FlatbuffersCodec{})
+	ser := grpc.NewServer(grpc.CustomCodec(flatbuffers.FlatbuffersCodec{}))
 	Example.RegisterMonsterStorageServer(ser, &server{})
 	go func() {
 		if err := ser.Serve(lis); err != nil {

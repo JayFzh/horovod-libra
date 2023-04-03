@@ -69,22 +69,39 @@ template<typename XprType>
 class TensorLayoutSwapOp : public TensorBase<TensorLayoutSwapOp<XprType>, WriteAccessors>
 {
   public:
-    typedef TensorBase<TensorLayoutSwapOp<XprType>, WriteAccessors> Base;
-    typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Scalar Scalar;
-    typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
-    typedef typename Eigen::internal::nested<TensorLayoutSwapOp>::type Nested;
-    typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::StorageKind StorageKind;
-    typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Index Index;
+  typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Scalar Scalar;
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
+  typedef typename internal::remove_const<typename XprType::CoeffReturnType>::type CoeffReturnType;
+  typedef typename Eigen::internal::nested<TensorLayoutSwapOp>::type Nested;
+  typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::StorageKind StorageKind;
+  typedef typename Eigen::internal::traits<TensorLayoutSwapOp>::Index Index;
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorLayoutSwapOp(const XprType& expr)
-        : m_xpr(expr) {}
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorLayoutSwapOp(const XprType& expr)
+      : m_xpr(expr) {}
 
     EIGEN_DEVICE_FUNC
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
-    EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(TensorLayoutSwapOp)
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorLayoutSwapOp& operator = (const TensorLayoutSwapOp& other)
+    {
+      typedef TensorAssignOp<TensorLayoutSwapOp, const TensorLayoutSwapOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
+
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorLayoutSwapOp& operator = (const OtherDerived& other)
+    {
+      typedef TensorAssignOp<TensorLayoutSwapOp, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
+
   protected:
     typename XprType::Nested m_xpr;
 };
@@ -113,7 +130,7 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
   {
     for(int i = 0; i < NumDims; ++i) {
@@ -136,10 +153,10 @@ struct TensorEvaluator<const TensorLayoutSwapOp<ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType data) {
     return m_impl.evalSubExprsIfNeeded(data);
   }
-  EIGEN_STRONG_INLINE void cleanup() {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
 
@@ -191,10 +208,10 @@ template<typename ArgType, typename Device>
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
     : Base(op, device)
   { }
-
+  
   typedef typename XprType::Index Index;
   typedef typename XprType::Scalar Scalar;
   typedef typename XprType::CoeffReturnType CoeffReturnType;

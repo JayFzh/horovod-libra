@@ -5,7 +5,7 @@
 local AnyUniqueAliases = {
     NONE = 0,
     M = 1,
-    TS = 2,
+    T = 2,
     M2 = 3,
 }
 

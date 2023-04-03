@@ -6,10 +6,11 @@ library my_game.example;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import 'include_test1_my_game.example_generated.dart';
+import 'include_test2_my_game.example_generated.dart';
 import './monster_test_my_game_generated.dart' as my_game;
 import './monster_test_my_game.example2_generated.dart' as my_game_example2;
 
-///  Composite components of Monster color.
 class Color {
   final int value;
   const Color._(this.value);
@@ -25,14 +26,9 @@ class Color {
   static bool containsValue(int value) => values.containsKey(value);
 
   static const Color Red = const Color._(1);
-
-  ///  \brief color Green
-  ///  Green is bit_flag with value (1u << 1)
   static const Color Green = const Color._(2);
-
-  ///  \brief color Blue (1u << 3)
   static const Color Blue = const Color._(8);
-  static const Map<int,Color> values = {1: Red,2: Green,8: Blue,};
+  static get values => {1: Red,2: Green,8: Blue,};
 
   static const fb.Reader<Color> reader = const _ColorReader();
 
@@ -50,48 +46,7 @@ class _ColorReader extends fb.Reader<Color> {
 
   @override
   Color read(fb.BufferContext bc, int offset) =>
-      new Color.fromValue(const fb.Uint8Reader().read(bc, offset));
-}
-
-class Race {
-  final int value;
-  const Race._(this.value);
-
-  factory Race.fromValue(int value) {
-    if (value == null) value = 0;
-    if (!values.containsKey(value)) {
-      throw new StateError('Invalid value $value for bit flag enum Race');
-    }
-    return values[value];
-  }
-
-  static const int minValue = -1;
-  static const int maxValue = 2;
-  static bool containsValue(int value) => values.containsKey(value);
-
-  static const Race None = const Race._(-1);
-  static const Race Human = const Race._(0);
-  static const Race Dwarf = const Race._(1);
-  static const Race Elf = const Race._(2);
-  static const Map<int,Race> values = {-1: None,0: Human,1: Dwarf,2: Elf,};
-
-  static const fb.Reader<Race> reader = const _RaceReader();
-
-  @override
-  String toString() {
-    return 'Race{value: $value}';
-  }
-}
-
-class _RaceReader extends fb.Reader<Race> {
-  const _RaceReader();
-
-  @override
-  int get size => 1;
-
-  @override
-  Race read(fb.BufferContext bc, int offset) =>
-      new Race.fromValue(const fb.Int8Reader().read(bc, offset));
+      new Color.fromValue(const fb.Int8Reader().read(bc, offset));
 }
 
 class AnyTypeId {
@@ -114,7 +69,7 @@ class AnyTypeId {
   static const AnyTypeId Monster = const AnyTypeId._(1);
   static const AnyTypeId TestSimpleTableWithEnum = const AnyTypeId._(2);
   static const AnyTypeId MyGame_Example2_Monster = const AnyTypeId._(3);
-  static const Map<int,AnyTypeId> values = {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
+  static get values => {0: NONE,1: Monster,2: TestSimpleTableWithEnum,3: MyGame_Example2_Monster,};
 
   static const fb.Reader<AnyTypeId> reader = const _AnyTypeIdReader();
 
@@ -153,9 +108,9 @@ class AnyUniqueAliasesTypeId {
 
   static const AnyUniqueAliasesTypeId NONE = const AnyUniqueAliasesTypeId._(0);
   static const AnyUniqueAliasesTypeId M = const AnyUniqueAliasesTypeId._(1);
-  static const AnyUniqueAliasesTypeId TS = const AnyUniqueAliasesTypeId._(2);
+  static const AnyUniqueAliasesTypeId T = const AnyUniqueAliasesTypeId._(2);
   static const AnyUniqueAliasesTypeId M2 = const AnyUniqueAliasesTypeId._(3);
-  static const Map<int,AnyUniqueAliasesTypeId> values = {0: NONE,1: M,2: TS,3: M2,};
+  static get values => {0: NONE,1: M,2: T,3: M2,};
 
   static const fb.Reader<AnyUniqueAliasesTypeId> reader = const _AnyUniqueAliasesTypeIdReader();
 
@@ -196,7 +151,7 @@ class AnyAmbiguousAliasesTypeId {
   static const AnyAmbiguousAliasesTypeId M1 = const AnyAmbiguousAliasesTypeId._(1);
   static const AnyAmbiguousAliasesTypeId M2 = const AnyAmbiguousAliasesTypeId._(2);
   static const AnyAmbiguousAliasesTypeId M3 = const AnyAmbiguousAliasesTypeId._(3);
-  static const Map<int,AnyAmbiguousAliasesTypeId> values = {0: NONE,1: M1,2: M2,3: M3,};
+  static get values => {0: NONE,1: M1,2: M2,3: M3,};
 
   static const fb.Reader<AnyAmbiguousAliasesTypeId> reader = const _AnyAmbiguousAliasesTypeIdReader();
 
@@ -304,7 +259,7 @@ class TestSimpleTableWithEnum {
   final fb.BufferContext _bc;
   final int _bcOffset;
 
-  Color get color => new Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 4, 2));
+  Color get color => new Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 4, 2));
 
   @override
   String toString() {
@@ -332,7 +287,7 @@ class TestSimpleTableWithEnumBuilder {
   }
 
   int addColor(Color color) {
-    fbBuilder.addUint8(0, color?.value);
+    fbBuilder.addInt8(0, color?.value);
     return fbBuilder.offset;
   }
 
@@ -356,7 +311,7 @@ class TestSimpleTableWithEnumObjectBuilder extends fb.ObjectBuilder {
     assert(fbBuilder != null);
 
     fbBuilder.startTable();
-    fbBuilder.addUint8(0, _color?.value);
+    fbBuilder.addInt8(0, _color?.value);
     return fbBuilder.endTable();
   }
 
@@ -380,7 +335,7 @@ class Vec3 {
   double get y => const fb.Float32Reader().read(_bc, _bcOffset + 4);
   double get z => const fb.Float32Reader().read(_bc, _bcOffset + 8);
   double get test1 => const fb.Float64Reader().read(_bc, _bcOffset + 16);
-  Color get test2 => new Color.fromValue(const fb.Uint8Reader().read(_bc, _bcOffset + 24));
+  Color get test2 => new Color.fromValue(const fb.Int8Reader().read(_bc, _bcOffset + 24));
   Test get test3 => Test.reader.read(_bc, _bcOffset + 26);
 
   @override
@@ -411,7 +366,7 @@ class Vec3Builder {
     fbBuilder.pad(2);
     test3();
     fbBuilder.pad(1);
-    fbBuilder.putUint8(test2?.value);
+    fbBuilder.putInt8(test2?.value);
     fbBuilder.putFloat64(test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(z);
@@ -454,7 +409,7 @@ class Vec3ObjectBuilder extends fb.ObjectBuilder {
     fbBuilder.pad(2);
     _test3.finish(fbBuilder);
     fbBuilder.pad(1);
-    fbBuilder.putUint8(_test2?.value);
+    fbBuilder.putInt8(_test2?.value);
     fbBuilder.putFloat64(_test1);
     fbBuilder.pad(4);
     fbBuilder.putFloat32(_z);
@@ -533,85 +488,6 @@ class AbilityObjectBuilder extends fb.ObjectBuilder {
 
     fbBuilder.putUint32(_distance);
     fbBuilder.putUint32(_id);
-    return fbBuilder.offset;
-  }
-
-  /// Convenience method to serialize to byte list.
-  @override
-  Uint8List toBytes([String fileIdentifier]) {
-    fb.Builder fbBuilder = new fb.Builder();
-    int offset = finish(fbBuilder);
-    return fbBuilder.finish(offset, fileIdentifier);
-  }
-}
-class StructOfStructs {
-  StructOfStructs._(this._bc, this._bcOffset);
-
-  static const fb.Reader<StructOfStructs> reader = const _StructOfStructsReader();
-
-  final fb.BufferContext _bc;
-  final int _bcOffset;
-
-  Ability get a => Ability.reader.read(_bc, _bcOffset + 0);
-  Test get b => Test.reader.read(_bc, _bcOffset + 8);
-  Ability get c => Ability.reader.read(_bc, _bcOffset + 12);
-
-  @override
-  String toString() {
-    return 'StructOfStructs{a: $a, b: $b, c: $c}';
-  }
-}
-
-class _StructOfStructsReader extends fb.StructReader<StructOfStructs> {
-  const _StructOfStructsReader();
-
-  @override
-  int get size => 20;
-
-  @override
-  StructOfStructs createObject(fb.BufferContext bc, int offset) => 
-    new StructOfStructs._(bc, offset);
-}
-
-class StructOfStructsBuilder {
-  StructOfStructsBuilder(this.fbBuilder) {
-    assert(fbBuilder != null);
-  }
-
-  final fb.Builder fbBuilder;
-
-  int finish(fb.StructBuilder a, fb.StructBuilder b, fb.StructBuilder c) {
-    c();
-    b();
-    a();
-    return fbBuilder.offset;
-  }
-
-}
-
-class StructOfStructsObjectBuilder extends fb.ObjectBuilder {
-  final AbilityObjectBuilder _a;
-  final TestObjectBuilder _b;
-  final AbilityObjectBuilder _c;
-
-  StructOfStructsObjectBuilder({
-    AbilityObjectBuilder a,
-    TestObjectBuilder b,
-    AbilityObjectBuilder c,
-  })
-      : _a = a,
-        _b = b,
-        _c = c;
-
-  /// Finish building, and store into the [fbBuilder].
-  @override
-  int finish(
-    fb.Builder fbBuilder) {
-    assert(fbBuilder != null);
-
-    _c.finish(fbBuilder);
-    _b.finish(fbBuilder);
-    _a.finish(fbBuilder);
     return fbBuilder.offset;
   }
 
@@ -796,7 +672,7 @@ class ReferrableObjectBuilder extends fb.ObjectBuilder {
     return fbBuilder.finish(offset, fileIdentifier);
   }
 }
-///  an example documentation comment: "monster object"
+///  an example documentation comment: monster object
 class Monster {
   Monster._(this._bc, this._bcOffset);
   factory Monster(List<int> bytes) {
@@ -814,7 +690,7 @@ class Monster {
   int get hp => const fb.Int16Reader().vTableGet(_bc, _bcOffset, 8, 100);
   String get name => const fb.StringReader().vTableGet(_bc, _bcOffset, 10, null);
   List<int> get inventory => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 14, null);
-  Color get color => new Color.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 16, 8));
+  Color get color => new Color.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 16, 8));
   AnyTypeId get testType => new AnyTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 18, 0));
   dynamic get test {
     switch (testType?.value) {
@@ -826,8 +702,8 @@ class Monster {
   }
   List<Test> get test4 => const fb.ListReader<Test>(Test.reader).vTableGet(_bc, _bcOffset, 22, null);
   List<String> get testarrayofstring => const fb.ListReader<String>(const fb.StringReader()).vTableGet(_bc, _bcOffset, 24, null);
-  ///  an example documentation comment: this will end up in the generated code
-  ///  multiline too
+///  an example documentation comment: this will end up in the generated code
+///  multiline too
   List<Monster> get testarrayoftables => const fb.ListReader<Monster>(Monster.reader).vTableGet(_bc, _bcOffset, 26, null);
   Monster get enemy => Monster.reader.vTableGet(_bc, _bcOffset, 28, null);
   List<int> get testnestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 30, null);
@@ -863,29 +739,26 @@ class Monster {
   AnyUniqueAliasesTypeId get anyUniqueType => new AnyUniqueAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 90, 0));
   dynamic get anyUnique {
     switch (anyUniqueType?.value) {
-      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 2: return TestSimpleTableWithEnum.reader.vTableGet(_bc, _bcOffset, 92, null);
-      case 3: return my_game_example2.Monster.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 1: return M.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 2: return T.reader.vTableGet(_bc, _bcOffset, 92, null);
+      case 3: return M2.reader.vTableGet(_bc, _bcOffset, 92, null);
       default: return null;
     }
   }
   AnyAmbiguousAliasesTypeId get anyAmbiguousType => new AnyAmbiguousAliasesTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 94, 0));
   dynamic get anyAmbiguous {
     switch (anyAmbiguousType?.value) {
-      case 1: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 2: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
-      case 3: return Monster.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 1: return M1.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 2: return M2.reader.vTableGet(_bc, _bcOffset, 96, null);
+      case 3: return M3.reader.vTableGet(_bc, _bcOffset, 96, null);
       default: return null;
     }
   }
   List<Color> get vectorOfEnums => const fb.ListReader<Color>(Color.reader).vTableGet(_bc, _bcOffset, 98, null);
-  Race get signedEnum => new Race.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 100, -1));
-  List<int> get testrequirednestedflatbuffer => const fb.ListReader<int>(const fb.Uint8Reader()).vTableGet(_bc, _bcOffset, 102, null);
-  List<Stat> get scalarKeySortedTables => const fb.ListReader<Stat>(Stat.reader).vTableGet(_bc, _bcOffset, 104, null);
 
   @override
   String toString() {
-    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums, signedEnum: $signedEnum, testrequirednestedflatbuffer: $testrequirednestedflatbuffer, scalarKeySortedTables: $scalarKeySortedTables}';
+    return 'Monster{pos: $pos, mana: $mana, hp: $hp, name: $name, inventory: $inventory, color: $color, testType: $testType, test: $test, test4: $test4, testarrayofstring: $testarrayofstring, testarrayoftables: $testarrayoftables, enemy: $enemy, testnestedflatbuffer: $testnestedflatbuffer, testempty: $testempty, testbool: $testbool, testhashs32Fnv1: $testhashs32Fnv1, testhashu32Fnv1: $testhashu32Fnv1, testhashs64Fnv1: $testhashs64Fnv1, testhashu64Fnv1: $testhashu64Fnv1, testhashs32Fnv1a: $testhashs32Fnv1a, testhashu32Fnv1a: $testhashu32Fnv1a, testhashs64Fnv1a: $testhashs64Fnv1a, testhashu64Fnv1a: $testhashu64Fnv1a, testarrayofbools: $testarrayofbools, testf: $testf, testf2: $testf2, testf3: $testf3, testarrayofstring2: $testarrayofstring2, testarrayofsortedstruct: $testarrayofsortedstruct, flex: $flex, test5: $test5, vectorOfLongs: $vectorOfLongs, vectorOfDoubles: $vectorOfDoubles, parentNamespaceTest: $parentNamespaceTest, vectorOfReferrables: $vectorOfReferrables, singleWeakReference: $singleWeakReference, vectorOfWeakReferences: $vectorOfWeakReferences, vectorOfStrongReferrables: $vectorOfStrongReferrables, coOwningReference: $coOwningReference, vectorOfCoOwningReferences: $vectorOfCoOwningReferences, nonOwningReference: $nonOwningReference, vectorOfNonOwningReferences: $vectorOfNonOwningReferences, anyUniqueType: $anyUniqueType, anyUnique: $anyUnique, anyAmbiguousType: $anyAmbiguousType, anyAmbiguous: $anyAmbiguous, vectorOfEnums: $vectorOfEnums}';
   }
 }
 
@@ -929,7 +802,7 @@ class MonsterBuilder {
     return fbBuilder.offset;
   }
   int addColor(Color color) {
-    fbBuilder.addUint8(6, color?.value);
+    fbBuilder.addInt8(6, color?.value);
     return fbBuilder.offset;
   }
   int addTestType(AnyTypeId testType) {
@@ -1096,18 +969,6 @@ class MonsterBuilder {
     fbBuilder.addOffset(47, offset);
     return fbBuilder.offset;
   }
-  int addSignedEnum(Race signedEnum) {
-    fbBuilder.addInt8(48, signedEnum?.value);
-    return fbBuilder.offset;
-  }
-  int addTestrequirednestedflatbufferOffset(int offset) {
-    fbBuilder.addOffset(49, offset);
-    return fbBuilder.offset;
-  }
-  int addScalarKeySortedTablesOffset(int offset) {
-    fbBuilder.addOffset(50, offset);
-    return fbBuilder.offset;
-  }
 
   int finish() {
     return fbBuilder.endTable();
@@ -1162,9 +1023,6 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
   final AnyAmbiguousAliasesTypeId _anyAmbiguousType;
   final dynamic _anyAmbiguous;
   final List<Color> _vectorOfEnums;
-  final Race _signedEnum;
-  final List<int> _testrequirednestedflatbuffer;
-  final List<StatObjectBuilder> _scalarKeySortedTables;
 
   MonsterObjectBuilder({
     Vec3ObjectBuilder pos,
@@ -1214,9 +1072,6 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     AnyAmbiguousAliasesTypeId anyAmbiguousType,
     dynamic anyAmbiguous,
     List<Color> vectorOfEnums,
-    Race signedEnum,
-    List<int> testrequirednestedflatbuffer,
-    List<StatObjectBuilder> scalarKeySortedTables,
   })
       : _pos = pos,
         _mana = mana,
@@ -1264,10 +1119,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
         _anyUnique = anyUnique,
         _anyAmbiguousType = anyAmbiguousType,
         _anyAmbiguous = anyAmbiguous,
-        _vectorOfEnums = vectorOfEnums,
-        _signedEnum = signedEnum,
-        _testrequirednestedflatbuffer = testrequirednestedflatbuffer,
-        _scalarKeySortedTables = scalarKeySortedTables;
+        _vectorOfEnums = vectorOfEnums;
 
   /// Finish building, and store into the [fbBuilder].
   @override
@@ -1333,13 +1185,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     final int anyUniqueOffset = _anyUnique?.getOrCreateOffset(fbBuilder);
     final int anyAmbiguousOffset = _anyAmbiguous?.getOrCreateOffset(fbBuilder);
     final int vectorOfEnumsOffset = _vectorOfEnums?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_vectorOfEnums.map((f) => f.value))
-        : null;
-    final int testrequirednestedflatbufferOffset = _testrequirednestedflatbuffer?.isNotEmpty == true
-        ? fbBuilder.writeListUint8(_testrequirednestedflatbuffer)
-        : null;
-    final int scalarKeySortedTablesOffset = _scalarKeySortedTables?.isNotEmpty == true
-        ? fbBuilder.writeList(_scalarKeySortedTables.map((b) => b.getOrCreateOffset(fbBuilder)).toList())
+        ? fbBuilder.writeListInt8(_vectorOfEnums.map((f) => f.value))
         : null;
 
     fbBuilder.startTable();
@@ -1354,7 +1200,7 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     if (inventoryOffset != null) {
       fbBuilder.addOffset(5, inventoryOffset);
     }
-    fbBuilder.addUint8(6, _color?.value);
+    fbBuilder.addInt8(6, _color?.value);
     fbBuilder.addUint8(7, _testType?.value);
     if (testOffset != null) {
       fbBuilder.addOffset(8, testOffset);
@@ -1441,13 +1287,6 @@ class MonsterObjectBuilder extends fb.ObjectBuilder {
     }
     if (vectorOfEnumsOffset != null) {
       fbBuilder.addOffset(47, vectorOfEnumsOffset);
-    }
-    fbBuilder.addInt8(48, _signedEnum?.value);
-    if (testrequirednestedflatbufferOffset != null) {
-      fbBuilder.addOffset(49, testrequirednestedflatbufferOffset);
-    }
-    if (scalarKeySortedTablesOffset != null) {
-      fbBuilder.addOffset(50, scalarKeySortedTablesOffset);
     }
     return fbBuilder.endTable();
   }

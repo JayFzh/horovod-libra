@@ -16,7 +16,6 @@
 // =============================================================================
 
 #include "nccl_operations.h"
-#include "/home/users/fzh/horovod-0.20.3/horovod/common/logging.h"
 // fzh-alloc
 #include <sys/time.h>       // included for 'gettimeofday()'
 #include <time.h>           // included for 'localtime()'
@@ -194,7 +193,10 @@ Status NCCLAllreduce::Execute(std::vector<TensorTableEntry>& entries,
   }
 
   // fzh-alloc
-  if(first%(global_state_->fusion_group_num) == 1 && first != 1 && global_state_->is_para){
+  if(first%(global_state_->fusion_group_num) <= global_state_->fake_num && 
+  first%(global_state_->fusion_group_num) > 0 &&
+  first > global_state_->fake_num && 
+  global_state_->is_para){
     std::cout<<"group num is "<<(global_state_->fusion_group_num)<<"\n";
     int blocknum = 0,threadnum = 0;
     if(global_state_->parallel_threadnum <= 512 ){
@@ -205,7 +207,7 @@ Status NCCLAllreduce::Execute(std::vector<TensorTableEntry>& entries,
       blocknum = global_state_->parallel_threadnum/512;
       threadnum = 511;
     }
-    gpu_op_context_.InitNewStream();
+    gpu_op_context_.InitNewStream(first);
     auto nccl_fzh_result = ncclAllReduce(fused_input_data, buffer_data,
                                    (size_t) num_elements,
                                    GetNCCLDataType(first_entry.tensor), ncclSum,

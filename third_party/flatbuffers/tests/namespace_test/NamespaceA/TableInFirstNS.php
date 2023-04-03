@@ -48,28 +48,10 @@ class TableInFirstNS extends Table
         return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \NamespaceA\NamespaceB\EnumInNestedNS::A;
     }
 
-    /**
-     * @return byte
-     */
-    public function getFooUnionType()
-    {
-        $o = $this->__offset(8);
-        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \NamespaceA\NamespaceB\UnionInNestedNS::NONE;
-    }
-
-    /**
-     * @returnint
-     */
-    public function getFooUnion($obj)
-    {
-        $o = $this->__offset(10);
-        return $o != 0 ? $this->__union($obj, $o) : null;
-    }
-
     public function getFooStruct()
     {
         $obj = new StructInNestedNS();
-        $o = $this->__offset(12);
+        $o = $this->__offset(8);
         return $o != 0 ? $obj->init($o + $this->bb_pos, $this->bb) : 0;
     }
 
@@ -79,20 +61,18 @@ class TableInFirstNS extends Table
      */
     public static function startTableInFirstNS(FlatBufferBuilder $builder)
     {
-        $builder->StartObject(5);
+        $builder->StartObject(3);
     }
 
     /**
      * @param FlatBufferBuilder $builder
      * @return TableInFirstNS
      */
-    public static function createTableInFirstNS(FlatBufferBuilder $builder, $foo_table, $foo_enum, $foo_union_type, $foo_union, $foo_struct)
+    public static function createTableInFirstNS(FlatBufferBuilder $builder, $foo_table, $foo_enum, $foo_struct)
     {
-        $builder->startObject(5);
+        $builder->startObject(3);
         self::addFooTable($builder, $foo_table);
         self::addFooEnum($builder, $foo_enum);
-        self::addFooUnionType($builder, $foo_union_type);
-        self::addFooUnion($builder, $foo_union);
         self::addFooStruct($builder, $foo_struct);
         $o = $builder->endObject();
         return $o;
@@ -120,27 +100,12 @@ class TableInFirstNS extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param byte
-     * @return void
-     */
-    public static function addFooUnionType(FlatBufferBuilder $builder, $fooUnionType)
-    {
-        $builder->addByteX(2, $fooUnionType, 0);
-    }
-
-    public static function addFooUnion(FlatBufferBuilder $builder, $offset)
-    {
-        $builder->addOffsetX(3, $offset, 0);
-    }
-
-    /**
-     * @param FlatBufferBuilder $builder
      * @param int
      * @return void
      */
     public static function addFooStruct(FlatBufferBuilder $builder, $fooStruct)
     {
-        $builder->addStructX(4, $fooStruct, 0);
+        $builder->addStructX(2, $fooStruct, 0);
     }
 
     /**

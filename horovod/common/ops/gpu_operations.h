@@ -107,7 +107,7 @@ public:
   void InitGPU(const std::vector<TensorTableEntry>& entrie,bool is_allreduce=false,bool is_para=false);
 
   // fzh-alloc
-  void InitNewStream();
+  void InitNewStream(int );
 
   void InitGPUQueue(const std::vector<TensorTableEntry>& entries, const Response& response,bool is_allreduce=false,bool is_para=false);
 

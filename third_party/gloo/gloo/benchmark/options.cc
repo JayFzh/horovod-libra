@@ -30,7 +30,6 @@ static void usage(int status, const char* argv0) {
   X("");
   X("Participation:");
   X("  -s, --size=SIZE        Number of processes");
-  X("                         Note: Need exactly two processes for send/recv benchmarks");
   X("  -r, --rank=RANK        Rank of this process");
   X("");
   X("Rendezvous:");
@@ -61,15 +60,11 @@ static void usage(int status, const char* argv0) {
   X("      --ib-index=INDEX          InfiniBand index to use (default: 0)");
   X("");
   X("Benchmark parameters:");
-  X("      --no-verify        Do not verify results of first iteration");
-  X("      --show-all-errors  Displays all errors when running with verify");
+  X("      --verify           Verify result first iteration (if applicable)");
   X("      --inputs           Number of input buffers");
   X("      --elements         Number of floats to use per input buffer");
-  X("      --warmup-iters     Number of warmup iterations to run (default: 5)");
   X("      --iteration-count  Number of iterations to run benchmark for");
-  X("                         Iteration time is used by default if not specified");
-  X("      --iteration-time   Minimum time to run benchmark for (default: 2s)");
-  X("                         This value is unused if iteration count is specified");
+  X("      --iteration-time   Time to run benchmark for (default: 2s)");
   X("      --threads          Number of threads to spawn (default: 1)");
   X("      --nanos            Display timing data in nanos instead of micros");
   X("      --gpudirect        Use GPUDirect (CUDA only)");
@@ -77,31 +72,16 @@ static void usage(int status, const char* argv0) {
   X("      --destinations     Number of separate destinations per host in "
                               "pairwise exchange benchmark");
   X("Algorithm parameters:");
-  X("      --base           The base for allreduce_bcube (if applicable)");
-  X("      --messages       The number of messages to send from A to B for");
-  X("                       sendrecv_stress and isendirecv_stress (default: 10000)");
+  X("      --base   The base for allreduce_bcube (if applicable)");
   X("");
   X("BENCHMARK is one of:");
-  X("  allgather");
-  X("  allgather_v");
-  X("  allgather_ring");
   X("  allreduce_ring");
   X("  allreduce_ring_chunked");
   X("  allreduce_halving_doubling");
   X("  allreduce_bcube");
-  X("  allreduce_local");
-  X("  alltoall");
-  X("  alltoall_v");
   X("  barrier_all_to_all");
-  X("  broadcast");
   X("  broadcast_one_to_all");
   X("  pairwise_exchange");
-  X("  reduce");
-  X("  reduce_scatter");
-  X("  scatter");
-  X("  sendrecv_roundtrip");
-  X("  sendrecv_stress");
-  X("  isendirecv_stress");
   X("");
 
   exit(status);
@@ -153,10 +133,8 @@ struct options parseOptions(int argc, char** argv) {
       {"prefix", required_argument, nullptr, 'x'},
       {"shared-path", required_argument, nullptr, 0x1012},
       {"transport", required_argument, nullptr, 't'},
-      {"no-verify", no_argument, nullptr, 0x1001},
-      {"show-all-errors", no_argument, nullptr, 0x1015},
+      {"verify", no_argument, nullptr, 0x1001},
       {"elements", required_argument, nullptr, 0x1002},
-      {"warmup-iters", required_argument, nullptr, 0x1014},
       {"iteration-count", required_argument, nullptr, 0x1003},
       {"iteration-time", required_argument, nullptr, 0x1004},
       {"sync", required_argument, nullptr, 0x1005},
@@ -172,11 +150,6 @@ struct options parseOptions(int argc, char** argv) {
       {"ib-port", required_argument, nullptr, 0x100f},
       {"tcp-device", required_argument, nullptr, 0x1010},
       {"base", required_argument, nullptr, 0x1011},
-      {"messages", required_argument, nullptr, 0x1013},
-      {"pkey", required_argument, nullptr, 0x2001},
-      {"cert", required_argument, nullptr, 0x2002},
-      {"ca-file", required_argument, nullptr, 0x2003},
-      {"ca-path", required_argument, nullptr, 0x2004},
       {"help", no_argument, nullptr, 0xffff},
       {nullptr, 0, nullptr, 0}};
 
@@ -213,24 +186,14 @@ struct options parseOptions(int argc, char** argv) {
         result.transport = std::string(optarg, strlen(optarg));
         break;
       }
-      case 0x1001: // --no-verify
+      case 0x1001: // --verify
       {
-        result.verify = false;
-        break;
-      }
-      case 0x1015: // --show-all-errors
-      {
-        result.showAllErrors = true;
+        result.verify = true;
         break;
       }
       case 0x1002: // --elements
       {
         result.elements = atoi(optarg);
-        break;
-      }
-      case 0x1014: // --warmup-iters
-      {
-        result.warmupIterationCount = atoi(optarg);
         break;
       }
       case 0x1003: // --iteration-count
@@ -240,7 +203,7 @@ struct options parseOptions(int argc, char** argv) {
       }
       case 0x1004: // --iteration-time
       {
-        result.minIterationTimeNanos = argToNanos(argv, optarg);
+        result.iterationTimeNanos = argToNanos(argv, optarg);
         break;
       }
       case 0x1005: // --sync
@@ -317,31 +280,6 @@ struct options parseOptions(int argc, char** argv) {
       case 0x1012: // --shared-path
       {
         result.sharedPath = std::string(optarg, strlen(optarg));
-        break;
-      }
-      case 0x1013: // --messages
-      {
-        result.messages = atoi(optarg);
-        break;
-      }
-      case 0x2001: // --pkey
-      {
-        result.pkey = std::string(optarg, strlen(optarg));
-        break;
-      }
-      case 0x2002: // --cert
-      {
-        result.cert = std::string(optarg, strlen(optarg));
-        break;
-      }
-      case 0x2003: // --ca-file
-      {
-        result.caFile = std::string(optarg, strlen(optarg));
-        break;
-      }
-      case 0x2004: // --ca-path
-      {
-        result.caPath = std::string(optarg, strlen(optarg));
         break;
       }
       case 0xffff: // --help

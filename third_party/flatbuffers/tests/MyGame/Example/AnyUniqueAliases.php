@@ -7,13 +7,13 @@ class AnyUniqueAliases
 {
     const NONE = 0;
     const M = 1;
-    const TS = 2;
+    const T = 2;
     const M2 = 3;
 
     private static $names = array(
         AnyUniqueAliases::NONE=>"NONE",
         AnyUniqueAliases::M=>"M",
-        AnyUniqueAliases::TS=>"TS",
+        AnyUniqueAliases::T=>"T",
         AnyUniqueAliases::M2=>"M2",
     );
 

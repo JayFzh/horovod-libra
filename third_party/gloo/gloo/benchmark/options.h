@@ -44,11 +44,10 @@ struct options {
 
   // Suite configuration
   std::string benchmark;
-  bool verify = true;
-  bool showAllErrors = false;
+  bool verify = false;
   int elements = -1;
   long iterationCount = -1;
-  long minIterationTimeNanos = 2 * 1000 * 1000 * 1000;
+  long iterationTimeNanos = 2 * 1000 * 1000 * 1000;
   int warmupIterationCount = 5;
   bool showNanos = false;
   int inputs = 1;
@@ -57,13 +56,6 @@ struct options {
   int destinations  = 1;
   int threads = 1;
   int base = 2;
-  int messages = 10000;
-
-  // TLS
-  std::string pkey;
-  std::string cert;
-  std::string caFile;
-  std::string caPath;
 };
 
 struct options parseOptions(int argc, char** argv);

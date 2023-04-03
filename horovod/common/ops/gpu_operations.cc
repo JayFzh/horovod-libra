@@ -54,8 +54,9 @@ void GPUOpContext::InitGPU(const std::vector<TensorTableEntry>& entries,bool is_
 }
 
 // fzh-alloc
-void GPUOpContext::InitNewStream(){
-  gpuStream_t* new_stream_ = &gpu_context_->streams[global_state_->current_nccl_stream][0];
+void GPUOpContext::InitNewStream(int times){
+  times = (times % 10) + 3;
+  gpuStream_t* new_stream_ = &gpu_context_->streams[global_state_->current_nccl_stream][times];
   if(new_stream_ == nullptr){
     gpu_context_->StreamCreate(new_stream_);
   }
@@ -74,12 +75,17 @@ void GPUOpContext::InitGPUQueue(const std::vector<TensorTableEntry>& entries, co
     global_state_->stream_index = stream_index;
   }
   this->stream = &gpu_context_->streams[global_state_->current_nccl_stream][stream_index];
+  if(is_allreduce){
+    printf("all reduce stream id %d\n",stream_index);
+  }
+  else{
+    printf("not all reduce stream id %d\n",stream_index);
+  }
   if (global_state_->timeline.Initialized()) {
     gpu_context_->RecordEvent(event_queue, QUEUE, *stream);
   }
   if(is_allreduce){
     global_state_->current_gpu_stream = (global_state_->current_gpu_stream+1)%(global_state_->stream_assignment.size());
-    // printf("stream id %d\n",stream_index);
   }
 }
 

@@ -1,7 +1,3 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- */
-
 #pragma once
 
 #include "linux.h"

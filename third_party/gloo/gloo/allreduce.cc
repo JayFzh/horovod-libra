@@ -95,10 +95,6 @@ BroadcastRangeFunction genLocalBroadcastFunction(const BufferVector& out) {
 }
 
 void allreduce(const detail::AllreduceOptionsImpl& opts) {
-  if (opts.elements == 0) {
-    return;
-  }
-
   const auto& context = opts.context;
   const std::vector<std::unique_ptr<transport::UnboundBuffer>>& in = opts.in;
   const std::vector<std::unique_ptr<transport::UnboundBuffer>>& out = opts.out;
@@ -106,6 +102,7 @@ void allreduce(const detail::AllreduceOptionsImpl& opts) {
 
   // Sanity checks
   GLOO_ENFORCE_GT(out.size(), 0);
+  GLOO_ENFORCE(opts.elements > 0);
   GLOO_ENFORCE(opts.elementSize > 0);
   GLOO_ENFORCE(opts.reduce != nullptr);
 

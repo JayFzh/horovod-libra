@@ -20,7 +20,7 @@ go_path=${test_dir}/go_gen
 go_src=${go_path}/src
 
 # Emit Go code for the example schema in the test dir:
-../flatc -g --gen-object-api -I include_test monster_test.fbs
+../flatc -g -I include_test monster_test.fbs
 
 # Go requires a particular layout of files in order to link multiple packages.
 # Copy flatbuffer Go files to their own package directories to compile the
@@ -47,11 +47,11 @@ cp -a ./go_test.go ./go_gen/src/flatbuffers_test/
 # flag -test.bench and the wildcard regexp ".":
 #   go -test -test.bench=. ...
 GOPATH=${go_path} go test flatbuffers_test \
-                     --coverpkg=github.com/google/flatbuffers/go \
+                     --test.coverpkg=github.com/google/flatbuffers/go \
                      --cpp_data=${test_dir}/monsterdata_test.mon \
                      --out_data=${test_dir}/monsterdata_go_wire.mon \
-                     --bench=. \
-                     --benchtime=3s \
+                     --test.bench=. \
+                     --test.benchtime=3s \
                      --fuzz=true \
                      --fuzz_fields=4 \
                      --fuzz_objects=10000
@@ -67,9 +67,7 @@ fi
 
 NOT_FMT_FILES=$(gofmt -l MyGame)
 if [[ ${NOT_FMT_FILES} != "" ]]; then
-    echo "These files are not well gofmt'ed:"
-    echo
-    echo "${NOT_FMT_FILES}"
+    echo "These files are not well gofmt'ed:\n\n${NOT_FMT_FILES}"
     # enable this when enums are properly formated
     # exit 1
 fi

@@ -11,22 +11,10 @@
 #include <fstream>
 #include <sstream>
 
-#ifdef _WIN32
-#include <Windows.h>
-#include <psapi.h>
-#endif
-
 namespace gloo {
 namespace test {
 namespace {
 
-#ifdef _WIN32
-size_t readResidentSetSize() {
-  PROCESS_MEMORY_COUNTERS counters{};
-  GetProcessMemoryInfo(GetCurrentProcess(), &counters, sizeof(counters));
-  return counters.WorkingSetSize;
-}
-#else
 size_t readResidentSetSize() {
   std::stringstream path;
   path << "/proc/" << getpid() << "/statm";
@@ -36,25 +24,11 @@ size_t readResidentSetSize() {
   f >> size >> resident;
   return (getpagesize() * resident);
 }
-#endif
 
-const std::vector<Transport> kTransportsForMemoryTest {
-    Transport::TCP,
-#if GLOO_HAVE_TRANSPORT_TCP_TLS
-    Transport::TCP_TLS,
-#endif
-};
+class MemoryTest : public BaseTest {};
 
-// Test parameterization.
-using Param = Transport;
-
-// Test fixture.
-class MemoryTest : public BaseTest,
-                   public ::testing::WithParamInterface<Param> {};
-
-TEST_P(MemoryTest, ManySlotsNoLeaks) {
-  const auto transport = GetParam();
-  spawn(transport, 2, [&](std::shared_ptr<Context> context) {
+TEST_F(MemoryTest, ManySlotsNoLeaks) {
+  spawn(Transport::TCP, 2, [&](std::shared_ptr<Context> context) {
     size_t tmp0;
     size_t tmp1;
     auto buf0 = context->createUnboundBuffer(&tmp0, sizeof(tmp0));
@@ -91,11 +65,6 @@ TEST_P(MemoryTest, ManySlotsNoLeaks) {
     ASSERT_EQ(baselineResidentSetSize, newResidentSetSize);
   });
 }
-
-INSTANTIATE_TEST_CASE_P(
-    MemoryTestDefault,
-    MemoryTest,
-    ::testing::ValuesIn(kTransportsForMemoryTest));
 
 } // namespace
 } // namespace test

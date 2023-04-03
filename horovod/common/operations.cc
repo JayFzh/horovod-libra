@@ -455,6 +455,13 @@ void BackgroundThreadLoop(HorovodGlobalState& state) {
   auto is_para = std::getenv(HOROVOD_PARALLEL_OR_NOT);
   if(is_para != nullptr){
     state.is_para = true;
+    int i=0,temp=0;
+    while(i<strlen(is_para)){
+        temp = temp*10 + is_para[i]-'0';
+        i++;
+    }
+    state.fake_num = temp;
+    std::cout<<"fake_num"<< temp<<"\n";
   }
 
 

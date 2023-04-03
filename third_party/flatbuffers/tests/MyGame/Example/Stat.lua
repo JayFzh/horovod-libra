@@ -13,9 +13,6 @@ function Stat.New()
     return o
 end
 function Stat.GetRootAsStat(buf, offset)
-    if type(buf) == "string" then
-        buf = flatbuffers.binaryArray.New(buf)
-    end
     local n = flatbuffers.N.UOffsetT:Unpack(buf, offset)
     local o = Stat.New()
     o:Init(buf, n + offset)

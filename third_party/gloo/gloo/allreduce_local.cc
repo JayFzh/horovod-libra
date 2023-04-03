@@ -48,7 +48,5 @@ INSTANTIATE_TEMPLATE(uint64_t);
 INSTANTIATE_TEMPLATE(float);
 INSTANTIATE_TEMPLATE(double);
 INSTANTIATE_TEMPLATE(float16);
-// Needed for benchmark (main.cc) to build, should not get used
-INSTANTIATE_TEMPLATE(char);
 
 } // namespace gloo

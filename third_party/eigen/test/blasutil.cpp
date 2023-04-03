@@ -9,13 +9,9 @@
 
 #include "main.h"
 
-// Disable "ignoring attributes on template argument"
-// for packet_traits<Packet*>
-// => The only workaround would be to wrap _m128 and the likes
-//    within wrappers.
-#if EIGEN_GNUC_AT_LEAST(6,0)
-    #pragma GCC diagnostic ignored "-Wignored-attributes"
-#endif
+#include <Eigen/Core>
+
+using namespace Eigen;
 
 #define GET(i,j) (StorageOrder == RowMajor ? (i)*stride + (j) : (i) + (j)*stride)
 #define SCATTER(i,j,k) (StorageOrder == RowMajor ? ((i)+(k))*stride + (j) : (i) + ((j)+(k))*stride)
@@ -204,7 +200,5 @@ EIGEN_DECLARE_TEST(blasutil)
 
         CALL_SUBTEST_5(run_test<float_t>());
         CALL_SUBTEST_6(run_test<double_t>());
-        CALL_SUBTEST_7(run_test<std::complex<float> >());
-        CALL_SUBTEST_8(run_test<std::complex<double> >());
     }
 }

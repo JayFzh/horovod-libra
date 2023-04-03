@@ -4,7 +4,6 @@ namespace proto.test;
 
 /// Enum doc comment.
 enum ProtoEnum : int {
-  NUL = 0,
   FOO = 1,
   /// Enum 2nd value doc comment misaligned.
   BAR = 5,

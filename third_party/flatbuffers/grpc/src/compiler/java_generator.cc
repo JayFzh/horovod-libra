@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-#include "src/compiler/java_generator.h"
+#include "java_generator.h"
 
 #include <algorithm>
 #include <iostream>

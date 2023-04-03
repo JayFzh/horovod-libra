@@ -1,7 +1,3 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- */
-
 #include <sys/types.h>
 #include <unistd.h>
 

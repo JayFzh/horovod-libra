@@ -8,13 +8,7 @@
 
 #pragma once
 
-#ifdef _WIN32
-#include "gloo/common/win.h"
-#else
 #include <sys/socket.h>
-#endif
-
-#include <mutex>
 
 #include <gloo/transport/address.h>
 
@@ -31,10 +25,6 @@ class Address : public ::gloo::transport::Address {
   Address(struct sockaddr_storage ss, sequence_type seq = -1);
 
   explicit Address(const std::vector<char>&);
-
-  Address& operator=(Address&& other);
-  Address& operator=(const Address& other);
-  Address(const Address& other);
 
   virtual std::vector<char> bytes() const override;
 
@@ -69,7 +59,6 @@ class Address : public ::gloo::transport::Address {
   static_assert(std::is_trivially_copyable<Impl>::value, "!");
 
   Impl impl_;
-  mutable std::mutex m_;
 };
 
 } // namespace uv

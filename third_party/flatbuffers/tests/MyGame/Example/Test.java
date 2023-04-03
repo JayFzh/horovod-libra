@@ -7,9 +7,8 @@ import java.lang.*;
 import java.util.*;
 import com.google.flatbuffers.*;
 
-@SuppressWarnings("unused")
-public final class Test extends Struct {
-  public void __init(int _i, ByteBuffer _bb) { __reset(_i, _bb); }
+@SuppressWarnings("unused")public final class Test extends Struct {
+  public void __init(int _i, ByteBuffer _bb) { bb_pos = _i; bb = _bb; }
   public Test __assign(int _i, ByteBuffer _bb) { __init(_i, _bb); return this; }
 
   public short a() { return bb.getShort(bb_pos + 0); }
@@ -23,13 +22,6 @@ public final class Test extends Struct {
     builder.putByte(b);
     builder.putShort(a);
     return builder.offset();
-  }
-
-  public static final class Vector extends BaseVector {
-    public Vector __assign(int _vector, int _element_size, ByteBuffer _bb) { __reset(_vector, _element_size, _bb); return this; }
-
-    public Test get(int j) { return get(new Test(), j); }
-    public Test get(Test obj, int j) {  return obj.__assign(__element(j), bb); }
   }
 }
 

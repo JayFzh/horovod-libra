@@ -307,8 +307,8 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef typename Storage::Type EvaluatorPointerType;
 
   enum {
-    IsAligned = int(TensorEvaluator<InputArgType, Device>::IsAligned) & int(TensorEvaluator<KernelArgType, Device>::IsAligned),
-    PacketAccess = int(TensorEvaluator<InputArgType, Device>::PacketAccess) & int(TensorEvaluator<KernelArgType, Device>::PacketAccess),
+    IsAligned = TensorEvaluator<InputArgType, Device>::IsAligned & TensorEvaluator<KernelArgType, Device>::IsAligned,
+    PacketAccess = TensorEvaluator<InputArgType, Device>::PacketAccess & TensorEvaluator<KernelArgType, Device>::PacketAccess,
     BlockAccess = false,
     PreferBlockAccess = false,
     Layout = TensorEvaluator<InputArgType, Device>::Layout,
@@ -320,7 +320,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_kernelArg(op.kernelExpression()), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<InputArgType, Device>::Layout) == static_cast<int>(TensorEvaluator<KernelArgType, Device>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);
@@ -384,12 +384,12 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(Scalar*) {
     m_inputImpl.evalSubExprsIfNeeded(NULL);
     preloadKernel();
     return true;
   }
-  EIGEN_STRONG_INLINE void cleanup() {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_inputImpl.cleanup();
     if (m_local_kernel) {
       m_device.deallocate((void*)m_kernel);
@@ -578,7 +578,7 @@ struct GetKernelSize<Dynamic> {
 
 template <typename InputEvaluator, typename Index, typename InputDims,
           int StaticKernelSize>
-__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel1D(
+__global__ __launch_bounds__(1024) void EigenConvolutionKernel1D(
     InputEvaluator eval,
     const internal::IndexMapper<Index, InputDims, 1, InputEvaluator::Layout>
         indexMapper,
@@ -630,7 +630,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel1D(
 
 template <typename InputEvaluator, typename Index, typename InputDims,
           int StaticKernelSizeX, int StaticKernelSizeY>
-__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel2D(
+__global__ __launch_bounds__(1024) void EigenConvolutionKernel2D(
     InputEvaluator eval,
     const internal::IndexMapper<Index, InputDims, 2, InputEvaluator::Layout>
         indexMapper,
@@ -701,7 +701,7 @@ __global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel2D(
 };
 
 template <typename InputEvaluator, typename Index, typename InputDims>
-__global__ EIGEN_HIP_LAUNCH_BOUNDS_1024 void EigenConvolutionKernel3D(
+__global__ __launch_bounds__(1024) void EigenConvolutionKernel3D(
     InputEvaluator eval,
     const internal::IndexMapper<Index, InputDims, 3, InputEvaluator::Layout>
         indexMapper,
@@ -797,7 +797,7 @@ struct TensorEvaluator<const TensorConvolutionOp<Indices, InputArgType, KernelAr
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  TensorEvaluator(const XprType& op, const GpuDevice& device)
+  EIGEN_DEVICE_FUNC TensorEvaluator(const XprType& op, const GpuDevice& device)
       : m_inputImpl(op.inputExpression(), device), m_kernelImpl(op.kernelExpression(), device), m_kernelArg(op.kernelExpression()), m_indices(op.indices()), m_buf(NULL), m_kernel(NULL), m_local_kernel(false), m_device(device)
   {
     EIGEN_STATIC_ASSERT((static_cast<int>(TensorEvaluator<InputArgType, GpuDevice>::Layout) == static_cast<int>(TensorEvaluator<KernelArgType, GpuDevice>::Layout)), YOU_MADE_A_PROGRAMMING_MISTAKE);

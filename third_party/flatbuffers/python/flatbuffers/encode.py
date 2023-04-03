@@ -19,8 +19,6 @@ from .compat import import_numpy, NumpyRequiredForThisFeature
 
 np = import_numpy()
 
-FILE_IDENTIFIER_LENGTH=4
-
 def Get(packer_type, buf, head):
     """ Get decodes a value at buf[head] using `packer_type`. """
     return packer_type.unpack_from(memoryview_type(buf), head)[0]

@@ -258,8 +258,7 @@ mark_as_advanced(METIS_DIR_FOUND)
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(METIS DEFAULT_MSG
   METIS_LIBRARIES
-  METIS_WORKS
-  METIS_INCLUDE_DIRS)
+  METIS_WORKS)
 #
 # TODO: Add possibility to check for specific functions in the library
 #

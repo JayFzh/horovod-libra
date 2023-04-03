@@ -6,6 +6,7 @@ library namespace_a;
 import 'dart:typed_data' show Uint8List;
 import 'package:flat_buffers/flat_buffers.dart' as fb;
 
+import 'namespace_test1_namespace_a_generated.dart';
 import './namespace_test2_namespace_c_generated.dart' as namespace_c;
 
 class TableInFirstNS {
@@ -22,18 +23,11 @@ class TableInFirstNS {
 
   namespace_a_namespace_b.TableInNestedNS get fooTable => namespace_a_namespace_b.TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 4, null);
   EnumInNestedNS get fooEnum => new EnumInNestedNS.fromValue(const fb.Int8Reader().vTableGet(_bc, _bcOffset, 6, 0));
-  UnionInNestedNSTypeId get fooUnionType => new UnionInNestedNSTypeId.fromValue(const fb.Uint8Reader().vTableGet(_bc, _bcOffset, 8, 0));
-  dynamic get fooUnion {
-    switch (fooUnionType?.value) {
-      case 1: return TableInNestedNS.reader.vTableGet(_bc, _bcOffset, 10, null);
-      default: return null;
-    }
-  }
-  namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 12, null);
+  namespace_a_namespace_b.StructInNestedNS get fooStruct => namespace_a_namespace_b.StructInNestedNS.reader.vTableGet(_bc, _bcOffset, 8, null);
 
   @override
   String toString() {
-    return 'TableInFirstNS{fooTable: $fooTable, fooEnum: $fooEnum, fooUnionType: $fooUnionType, fooUnion: $fooUnion, fooStruct: $fooStruct}';
+    return 'TableInFirstNS{fooTable: $fooTable, fooEnum: $fooEnum, fooStruct: $fooStruct}';
   }
 }
 
@@ -64,16 +58,8 @@ class TableInFirstNSBuilder {
     fbBuilder.addInt8(1, fooEnum?.value);
     return fbBuilder.offset;
   }
-  int addFooUnionType(UnionInNestedNSTypeId fooUnionType) {
-    fbBuilder.addUint8(2, fooUnionType?.value);
-    return fbBuilder.offset;
-  }
-  int addFooUnionOffset(int offset) {
-    fbBuilder.addOffset(3, offset);
-    return fbBuilder.offset;
-  }
   int addFooStruct(int offset) {
-    fbBuilder.addStruct(4, offset);
+    fbBuilder.addStruct(2, offset);
     return fbBuilder.offset;
   }
 
@@ -85,21 +71,15 @@ class TableInFirstNSBuilder {
 class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
   final namespace_a_namespace_b.TableInNestedNSObjectBuilder _fooTable;
   final EnumInNestedNS _fooEnum;
-  final UnionInNestedNSTypeId _fooUnionType;
-  final dynamic _fooUnion;
   final namespace_a_namespace_b.StructInNestedNSObjectBuilder _fooStruct;
 
   TableInFirstNSObjectBuilder({
     namespace_a_namespace_b.TableInNestedNSObjectBuilder fooTable,
     EnumInNestedNS fooEnum,
-    UnionInNestedNSTypeId fooUnionType,
-    dynamic fooUnion,
     namespace_a_namespace_b.StructInNestedNSObjectBuilder fooStruct,
   })
       : _fooTable = fooTable,
         _fooEnum = fooEnum,
-        _fooUnionType = fooUnionType,
-        _fooUnion = fooUnion,
         _fooStruct = fooStruct;
 
   /// Finish building, and store into the [fbBuilder].
@@ -108,19 +88,14 @@ class TableInFirstNSObjectBuilder extends fb.ObjectBuilder {
     fb.Builder fbBuilder) {
     assert(fbBuilder != null);
     final int fooTableOffset = _fooTable?.getOrCreateOffset(fbBuilder);
-    final int fooUnionOffset = _fooUnion?.getOrCreateOffset(fbBuilder);
 
     fbBuilder.startTable();
     if (fooTableOffset != null) {
       fbBuilder.addOffset(0, fooTableOffset);
     }
     fbBuilder.addInt8(1, _fooEnum?.value);
-    fbBuilder.addUint8(2, _fooUnionType?.value);
-    if (fooUnionOffset != null) {
-      fbBuilder.addOffset(3, fooUnionOffset);
-    }
     if (_fooStruct != null) {
-      fbBuilder.addStruct(4, _fooStruct.finish(fbBuilder));
+      fbBuilder.addStruct(2, _fooStruct.finish(fbBuilder));
     }
     return fbBuilder.endTable();
   }

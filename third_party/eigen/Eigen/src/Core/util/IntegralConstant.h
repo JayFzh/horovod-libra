@@ -52,7 +52,7 @@ template<int N> class FixedInt
 {
 public:
   static const int value = N;
-  EIGEN_CONSTEXPR operator int() const { return value; }
+  operator int() const { return value; }
   FixedInt() {}
   FixedInt( VariableAndFixedInt<N> other) {
     #ifndef EIGEN_INTERNAL_DEBUGGING
@@ -77,7 +77,7 @@ public:
   template<int M>
   FixedInt<N&M> operator&( FixedInt<M>) const { return FixedInt<N&M>(); }
 
-#if EIGEN_HAS_CXX14_VARIABLE_TEMPLATES
+#if EIGEN_HAS_CXX14
   // Needed in C++14 to allow fix<N>():
   FixedInt operator() () const { return *this; }
 
@@ -184,7 +184,7 @@ template<int N, int DynamicKey> struct cleanup_index_type<std::integral_constant
 
 #ifndef EIGEN_PARSED_BY_DOXYGEN
 
-#if EIGEN_HAS_CXX14_VARIABLE_TEMPLATES
+#if EIGEN_HAS_CXX14
 template<int N>
 static const internal::FixedInt<N> fix{};
 #else

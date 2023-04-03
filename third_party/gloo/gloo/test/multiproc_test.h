@@ -18,46 +18,32 @@
 #include "gloo/common/logging.h"
 #include "gloo/rendezvous/context.h"
 #include "gloo/rendezvous/file_store.h"
-#include "gloo/test/base_test.h"
+#include "gloo/transport/tcp/device.h"
 
 namespace gloo {
 namespace test {
 
 const int kExitWithIoException = 10;
-const auto kMultiProcTimeout = std::chrono::milliseconds(3000);
+const auto kMultiProcTimeout = std::chrono::milliseconds(500);
 
 class MultiProcTest : public ::testing::Test {
  protected:
   void SetUp() override;
   void TearDown() override;
 
-  // Forks numRanks child processes that create a context of the defined
-  // transport and run the provided lambda function.
-  void spawnAsync(Transport transport, int numRanks,
-                  std::function<void(std::shared_ptr<Context>)> fn);
-
-  // Waits on each forked child process.
+  void spawnAsync(int size, std::function<void(std::shared_ptr<Context>)> fn);
   void wait();
-
-  // Waits for the forked child process on the specified rank to change state.
   void waitProcess(int rank);
-
-  // Kills the specified process using the supplied signal.
   void signalProcess(int rank, int signal);
 
   int getResult(int rank) {
     return workerResults_[rank];
   }
 
-  // A single function that encapsulates spawnAsync to run the specified number
-  // of child processes, waiting for their completion, and asserting correct
-  // exit statuses.
-  void spawn(Transport transport, int size, std::function<void(std::shared_ptr<Context>)> fn);
+  void spawn(int size, std::function<void(std::shared_ptr<Context>)> fn);
 
  private:
-  // Creates a MultiProcWorker to run the specified lambda.
   int runWorker(
-      Transport transport,
       int size,
       int rank,
       std::function<void(std::shared_ptr<Context>)> fn);
@@ -65,11 +51,7 @@ class MultiProcTest : public ::testing::Test {
   std::string storePath_;
   std::string semaphoreName_;
   sem_t* semaphore_;
-
-  // List of pid's for each forked child process.
   std::vector<pid_t> workers_;
-
-  // Holds the exit statuses for each child process.
   std::vector<int> workerResults_;
 };
 
@@ -89,12 +71,11 @@ class MultiProcWorker {
   }
 
   void run(
-      Transport transport,
       int size,
       int rank,
       std::function<void(std::shared_ptr<Context>)> fn) {
     auto context = std::make_shared<::gloo::rendezvous::Context>(rank, size);
-    auto device = createDevice(transport);
+    auto device = ::gloo::transport::tcp::CreateDevice("localhost");
     context->setTimeout(std::chrono::milliseconds(kMultiProcTimeout));
     context->connectFullMesh(*store_, device);
     device.reset();

@@ -54,15 +54,14 @@ template<typename Strides, typename XprType>
 class TensorStridingOp : public TensorBase<TensorStridingOp<Strides, XprType> >
 {
   public:
-    typedef TensorBase<TensorStridingOp<Strides, XprType> > Base;
-    typedef typename Eigen::internal::traits<TensorStridingOp>::Scalar Scalar;
-    typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename Eigen::internal::nested<TensorStridingOp>::type Nested;
-    typedef typename Eigen::internal::traits<TensorStridingOp>::StorageKind StorageKind;
-    typedef typename Eigen::internal::traits<TensorStridingOp>::Index Index;
+  typedef typename Eigen::internal::traits<TensorStridingOp>::Scalar Scalar;
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename Eigen::internal::nested<TensorStridingOp>::type Nested;
+  typedef typename Eigen::internal::traits<TensorStridingOp>::StorageKind StorageKind;
+  typedef typename Eigen::internal::traits<TensorStridingOp>::Index Index;
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorStridingOp(const XprType& expr, const Strides& dims)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorStridingOp(const XprType& expr, const Strides& dims)
       : m_xpr(expr), m_dims(dims) {}
 
     EIGEN_DEVICE_FUNC
@@ -72,7 +71,24 @@ class TensorStridingOp : public TensorBase<TensorStridingOp<Strides, XprType> >
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
-    EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(TensorStridingOp)
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorStridingOp& operator = (const TensorStridingOp& other)
+    {
+      typedef TensorAssignOp<TensorStridingOp, const TensorStridingOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
+
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorStridingOp& operator = (const OtherDerived& other)
+    {
+      typedef TensorAssignOp<TensorStridingOp, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
 
   protected:
     typename XprType::Nested m_xpr;
@@ -109,7 +125,7 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : m_impl(op.expression(), device)
   {
     m_dimensions = m_impl.dimensions();
@@ -142,11 +158,11 @@ struct TensorEvaluator<const TensorStridingOp<Strides, ArgType>, Device>
 
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType/*data*/) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType/*data*/) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
-  EIGEN_STRONG_INLINE void cleanup() {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
 
@@ -277,7 +293,7 @@ struct TensorEvaluator<TensorStridingOp<Strides, ArgType>, Device>
     RawAccess = false
   };
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
       : Base(op, device) { }
 
   typedef typename XprType::Index Index;

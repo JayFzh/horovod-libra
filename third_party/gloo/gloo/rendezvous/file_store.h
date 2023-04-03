@@ -34,8 +34,6 @@ class FileStore : public Store {
       const std::vector<std::string>& keys,
       const std::chrono::milliseconds& timeout) override;
 
-  std::vector<std::string> getAllKeyFilePaths();
-
  protected:
   std::string basePath_;
 
@@ -46,8 +44,6 @@ class FileStore : public Store {
   std::string objectPath(const std::string& name);
 
   bool check(const std::vector<std::string>& keys);
-
-  std::vector<std::string> keyFilePaths_;
 };
 
 } // namespace rendezvous

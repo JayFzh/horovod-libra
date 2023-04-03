@@ -12,10 +12,8 @@
 #include "gloo/cuda_collectives_host.h"
 #include "gloo/cuda_private.h"
 
-#include <sstream>
-#ifndef _WIN32
 #include <unistd.h>
-#endif
+#include <sstream>
 
 #ifdef DEBUG
 #define DEBUG_PRINT_STAGE(stage) \

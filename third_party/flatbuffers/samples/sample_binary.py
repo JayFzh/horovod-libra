@@ -55,13 +55,13 @@ def main():
   # Note: Since we prepend the bytes, this loop iterates in reverse order.
   for i in reversed(range(0, 10)):
     builder.PrependByte(i)
-  inv = builder.EndVector()
+  inv = builder.EndVector(10)
 
   MyGame.Sample.Monster.MonsterStartWeaponsVector(builder, 2)
   # Note: Since we prepend the data, prepend the weapons in reverse order.
   builder.PrependUOffsetTRelative(axe)
   builder.PrependUOffsetTRelative(sword)
-  weapons = builder.EndVector()
+  weapons = builder.EndVector(2)
 
   pos = MyGame.Sample.Vec3.CreateVec3(builder, 1.0, 2.0, 3.0)
 

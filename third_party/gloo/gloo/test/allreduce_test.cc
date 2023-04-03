@@ -26,13 +26,8 @@ namespace {
 
 // RAII handle for aligned buffer
 template <typename T>
-#ifdef _WIN32
-std::vector<T> newBuffer(int size) {
-  return std::vector<T>(size);
-#else
 std::vector<T, aligned_allocator<T, kBufferAlignment>> newBuffer(int size) {
   return std::vector<T, aligned_allocator<T, kBufferAlignment>>(size);
-#endif
 }
 
 // Function to instantiate and run algorithm.
@@ -244,7 +239,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Range(1, 16),
-        ::testing::Values(0, 4, 100, 1000, 10000),
+        ::testing::Values(4, 100, 1000, 10000),
         ::testing::Values(allreduceRing),
         ::testing::Values(0)));
 
@@ -254,7 +249,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Range(1, 16),
-        ::testing::Values(0, 4, 100, 1000, 10000),
+        ::testing::Values(4, 100, 1000, 10000),
         ::testing::Values(allreduceRingChunked),
         ::testing::Values(0)));
 
@@ -264,7 +259,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Values(1, 2, 3, 4, 5, 6, 7, 8, 9, 13, 16, 24, 32),
-        ::testing::Values(0, 1, 64, 1000),
+        ::testing::Values(1, 64, 1000),
         ::testing::Values(allreduceHalvingDoubling),
         ::testing::Values(0)));
 
@@ -274,7 +269,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Values(1, 2, 4, 8, 16),
-        ::testing::Values(0, 1, 64, 1000),
+        ::testing::Values(1, 64, 1000),
         ::testing::Values(allreduceBcube),
         ::testing::Values(2)));
 
@@ -284,7 +279,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Values(1, 3, 9, 27),
-        ::testing::Values(0, 1, 64, 1000),
+        ::testing::Values(1, 64, 1000),
         ::testing::Values(allreduceBcube),
         ::testing::Values(3)));
 
@@ -294,7 +289,7 @@ INSTANTIATE_TEST_CASE_P(
     ::testing::Combine(
         ::testing::ValuesIn(kTransportsForClassAlgorithms),
         ::testing::Values(1, 4, 16),
-        ::testing::Values(0, 1, 64, 1000),
+        ::testing::Values(1, 64, 1000),
         ::testing::Values(allreduceBcube),
         ::testing::Values(4)));
 
@@ -362,7 +357,7 @@ INSTANTIATE_TEST_CASE_P(
         ::testing::ValuesIn(kTransportsForFunctionAlgorithms),
         ::testing::Values(1, 2, 4, 7),
         ::testing::Values(1, 2, 3),
-        ::testing::Values(0, 1, 10, 100, 1000, 10000),
+        ::testing::Values(1, 10, 100, 1000, 10000),
         ::testing::Values(true, false),
         ::testing::Values(Algorithm::RING)));
 
@@ -373,7 +368,7 @@ INSTANTIATE_TEST_CASE_P(
         ::testing::ValuesIn(kTransportsForFunctionAlgorithms),
         ::testing::Values(1, 2, 4, 7),
         ::testing::Values(1, 2, 3),
-        ::testing::Values(0, 1, 10, 100, 1000, 10000),
+        ::testing::Values(1, 10, 100, 1000, 10000),
         ::testing::Values(true, false),
         ::testing::Values(Algorithm::BCUBE)));
 

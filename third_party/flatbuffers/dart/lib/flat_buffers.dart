@@ -149,9 +149,6 @@ class Builder {
     reset();
   }
 
-  /// Calculate the finished buffer size (aligned).
-  int size() => _tail + ((-_tail) % _maxAlign);
-
   /// Add the [field] with the given boolean [value].  The field is not added if
   /// the [value] is equal to [def].  Booleans are stored as 8-bit fields with
   /// `0` for `false` and `1` for `true`.
@@ -338,7 +335,8 @@ class Builder {
   ///
   /// Most clients should prefer calling [finish].
   Uint8List lowFinish() {
-    return _buf.buffer.asUint8List(_buf.lengthInBytes - size());
+    int alignedTail = _tail + ((-_tail) % _maxAlign);
+    return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
   }
 
   /// Finish off the creation of the buffer.  The given [offset] is used as the
@@ -348,15 +346,15 @@ class Builder {
   /// bytes 4-7 of the file.
   Uint8List finish(int offset, [String fileIdentifier]) {
     _prepare(max(_sizeofUint32, _maxAlign), fileIdentifier == null ? 1 : 2);
-    final finishedSize = size();
-    _setUint32AtTail(_buf, finishedSize, finishedSize - offset);
+    int alignedTail = _tail + ((-_tail) % _maxAlign);
+    _setUint32AtTail(_buf, alignedTail, alignedTail - offset);
     if (fileIdentifier != null) {
       for (int i = 0; i < 4; i++) {
-        _setUint8AtTail(_buf, finishedSize - _sizeofUint32 - i,
+        _setUint8AtTail(_buf, alignedTail - _sizeofUint32 - i,
             fileIdentifier.codeUnitAt(i));
       }
     }
-    return _buf.buffer.asUint8List(_buf.lengthInBytes - finishedSize);
+    return _buf.buffer.asUint8List(_buf.lengthInBytes - alignedTail);
   }
 
   /// Writes a Float64 to the tail of the buffer after preparing space for it.
@@ -445,7 +443,6 @@ class Builder {
     _maxAlign = 1;
     _tail = 0;
     _currentVTable = null;
-    _vTables.clear();
     if (_strings != null) {
       _strings = new Map<String, int>();
     }
@@ -495,7 +492,7 @@ class Builder {
   /// Write the given list of 64-bit float [values].
   int writeListFloat64(List<double> values) {
     _ensureNoVTable();
-    _prepare(_sizeofFloat64, values.length, additionalBytes: _sizeofUint32);
+    _prepare(4, 1 + (2 * values.length));
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -525,7 +522,7 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListInt64(List<int> values) {
     _ensureNoVTable();
-    _prepare(_sizeofInt64, values.length, additionalBytes: _sizeofUint32);
+    _prepare(_sizeofUint32, 2 * values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -540,7 +537,7 @@ class Builder {
   /// Write the given list of signed 64-bit integer [values].
   int writeListUint64(List<int> values) {
     _ensureNoVTable();
-    _prepare(_sizeofUint64, values.length, additionalBytes: _sizeofUint32);
+    _prepare(_sizeofUint32, 2 * values.length);
     final int result = _tail;
     int tail = _tail;
     _setUint32AtTail(_buf, tail, values.length);
@@ -672,7 +669,6 @@ class Builder {
     for (int i = 0; i < length; i++) {
       _buf.setUint8(offset++, bytes[i]);
     }
-    _buf.setUint8(offset, 0); // trailing zero
     return result;
   }
 

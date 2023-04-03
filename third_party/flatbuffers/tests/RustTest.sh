@@ -15,53 +15,23 @@ set -e
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-if [[ "$1" == "mips-unknown-linux-gnu" ]]; then
-    TARGET_FLAG="--target mips-unknown-linux-gnu"
-    export CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_LINKER=mips-linux-gnu-gcc
-    export CARGO_TARGET_MIPS_UNKNOWN_LINUX_GNU_RUNNER="qemu-mips -L /usr/mips-linux-gnu"
-fi
-
-
-function check_test_result() {
-    if [[ $? == 0 ]]; then
-        echo OK: $1 passed.
-    else
-        echo KO: $1 failed.
-        exit 1
-    fi
-}
-
 cd ./rust_usage_test
-cargo test $TARGET_FLAG -- --quiet
-check_test_result "Rust tests"
-
-
-cargo run $TARGET_FLAG --bin=flatbuffers_alloc_check
-check_test_result "Rust flatbuffers heap alloc test"
-
-cargo run $TARGET_FLAG --bin=flexbuffers_alloc_check
-check_test_result "Rust flexbuffers heap alloc test"
-
-# TODO(caspern): Fix this.
-#   Temporarily disabled due to error in upstream configuration
-#   https://github.com/google/flatbuffers/issues/6491
-#
-# rustup component add clippy
-# cargo clippy $TARGET_FLAG
-# check_test_result "No Cargo clippy lints test"
-
-cargo bench $TARGET_FLAG
-
-# This test is dependent on flatc.
-if [[ -f ../../flatc ]]; then
-    cd outdir
-    cargo test
-    check_test_result "Rust generated file in \$OUT_DIR"
-    cd ..
+cargo test -- --quiet
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust tests passed."
+else
+    echo "KO: Rust tests failed."
+    exit 1
 fi
 
-# RUST_NIGHTLY environment variable set in dockerfile.
-if [[ $RUST_NIGHTLY == 1 ]]; then
-  rustup +nightly component add miri
-  MIRIFLAGS="-Zmiri-disable-isolation" cargo +nightly miri test
+cargo run --bin=alloc_check
+TEST_RESULT=$?
+if [[ $TEST_RESULT  == 0 ]]; then
+    echo "OK: Rust heap alloc test passed."
+else
+    echo "KO: Rust heap alloc test failed."
+    exit 1
 fi
+
+cargo bench

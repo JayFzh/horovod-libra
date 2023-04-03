@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-#![allow(clippy::wrong_self_convention)]
 
 use std::mem::size_of;
 
@@ -35,7 +34,7 @@ pub trait EndianScalar: Sized + PartialEq + Copy + Clone {
 /// Macro for implementing a no-op endian conversion. This is used for types
 /// that are one byte wide.
 macro_rules! impl_endian_scalar_noop {
-    ($ty:ident) => {
+    ($ty:ident) => (
         impl EndianScalar for $ty {
             #[inline]
             fn to_little_endian(self) -> Self {
@@ -46,7 +45,7 @@ macro_rules! impl_endian_scalar_noop {
                 self
             }
         }
-    };
+    )
 }
 
 /// Macro for implementing an endian conversion using the stdlib `to_le` and
@@ -54,7 +53,7 @@ macro_rules! impl_endian_scalar_noop {
 /// floats, because the `to_le` and `from_le` are not implemented for them in
 /// the stdlib.
 macro_rules! impl_endian_scalar_stdlib_le_conversion {
-    ($ty:ident) => {
+    ($ty:ident) => (
         impl EndianScalar for $ty {
             #[inline]
             fn to_little_endian(self) -> Self {
@@ -65,7 +64,7 @@ macro_rules! impl_endian_scalar_stdlib_le_conversion {
                 Self::from_le(self)
             }
         }
-    };
+    )
 }
 
 impl_endian_scalar_noop!(bool);
@@ -89,7 +88,7 @@ impl EndianScalar for f32 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f32(self)
+            byte_swap_f32(&self)
         }
     }
     /// Convert f32 from little-endian to host endian-ness.
@@ -101,7 +100,7 @@ impl EndianScalar for f32 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f32(self)
+            byte_swap_f32(&self)
         }
     }
 }
@@ -116,7 +115,7 @@ impl EndianScalar for f64 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f64(self)
+            byte_swap_f64(&self)
         }
     }
     /// Convert f64 from little-endian to host endian-ness.
@@ -128,7 +127,7 @@ impl EndianScalar for f64 {
         }
         #[cfg(not(target_endian = "little"))]
         {
-            byte_swap_f64(self)
+            byte_swap_f64(&self)
         }
     }
 }
@@ -149,36 +148,33 @@ pub fn byte_swap_f64(x: f64) -> f64 {
 
 /// Place an EndianScalar into the provided mutable byte slice. Performs
 /// endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`
-/// and `x` does not overlap with `s`.
 #[inline]
-pub unsafe fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
-    let x_le = x.to_little_endian();
-    core::ptr::copy_nonoverlapping(
-        &x_le as *const T as *const u8,
-        s.as_mut_ptr() as *mut u8,
-        size_of::<T>(),
-    );
+pub fn emplace_scalar<T: EndianScalar>(s: &mut [u8], x: T) {
+    let sz = size_of::<T>();
+    let mut_ptr = (&mut s[..sz]).as_mut_ptr() as *mut T;
+    let val = x.to_little_endian();
+    unsafe {
+        *mut_ptr = val;
+    }
 }
 
 /// Read an EndianScalar from the provided byte slice at the specified location.
 /// Performs endian conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > loc + size_of::<T>()`.
 #[inline]
-pub unsafe fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
-    read_scalar(&s[loc..])
+pub fn read_scalar_at<T: EndianScalar>(s: &[u8], loc: usize) -> T {
+    let buf = &s[loc..loc + size_of::<T>()];
+    read_scalar(buf)
 }
 
 /// Read an EndianScalar from the provided byte slice. Performs endian
 /// conversion, if necessary.
-/// # Safety
-/// Caller must ensure `s.len() > size_of::<T>()`.
 #[inline]
-pub unsafe fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
-    let mut mem = core::mem::MaybeUninit::<T>::uninit();
-    // Since [u8] has alignment 1, we copy it into T which may have higher alignment.
-    core::ptr::copy_nonoverlapping(s.as_ptr(), mem.as_mut_ptr() as *mut u8, size_of::<T>());
-    mem.assume_init().from_little_endian()
+pub fn read_scalar<T: EndianScalar>(s: &[u8]) -> T {
+    let sz = size_of::<T>();
+
+    let p = (&s[..sz]).as_ptr() as *const T;
+    let x = unsafe { *p };
+
+    x.from_little_endian()
 }
+

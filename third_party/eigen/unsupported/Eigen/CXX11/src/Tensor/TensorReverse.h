@@ -54,16 +54,15 @@ class TensorReverseOp : public TensorBase<TensorReverseOp<ReverseDimensions,
                                           XprType>, WriteAccessors>
 {
   public:
-    typedef TensorBase<TensorReverseOp<ReverseDimensions, XprType>, WriteAccessors>Base;
-    typedef typename Eigen::internal::traits<TensorReverseOp>::Scalar Scalar;
-    typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
-    typedef typename XprType::CoeffReturnType CoeffReturnType;
-    typedef typename Eigen::internal::nested<TensorReverseOp>::type Nested;
-    typedef typename Eigen::internal::traits<TensorReverseOp>::StorageKind
-                                                                      StorageKind;
-    typedef typename Eigen::internal::traits<TensorReverseOp>::Index Index;
+  typedef typename Eigen::internal::traits<TensorReverseOp>::Scalar Scalar;
+  typedef typename Eigen::NumTraits<Scalar>::Real RealScalar;
+  typedef typename XprType::CoeffReturnType CoeffReturnType;
+  typedef typename Eigen::internal::nested<TensorReverseOp>::type Nested;
+  typedef typename Eigen::internal::traits<TensorReverseOp>::StorageKind
+                                                                    StorageKind;
+  typedef typename Eigen::internal::traits<TensorReverseOp>::Index Index;
 
-    EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorReverseOp(
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorReverseOp(
       const XprType& expr, const ReverseDimensions& reverse_dims)
       : m_xpr(expr), m_reverse_dims(reverse_dims) { }
 
@@ -74,8 +73,24 @@ class TensorReverseOp : public TensorBase<TensorReverseOp<ReverseDimensions,
     const typename internal::remove_all<typename XprType::Nested>::type&
     expression() const { return m_xpr; }
 
-    EIGEN_TENSOR_INHERIT_ASSIGNMENT_OPERATORS(TensorReverseOp)
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorReverseOp& operator = (const TensorReverseOp& other)
+    {
+      typedef TensorAssignOp<TensorReverseOp, const TensorReverseOp> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
 
+    template<typename OtherDerived>
+    EIGEN_DEVICE_FUNC
+    EIGEN_STRONG_INLINE TensorReverseOp& operator = (const OtherDerived& other)
+    {
+      typedef TensorAssignOp<TensorReverseOp, const OtherDerived> Assign;
+      Assign assign(*this, other);
+      internal::TensorExecutor<const Assign, DefaultDevice>::run(assign, DefaultDevice());
+      return *this;
+    }
 
   protected:
     typename XprType::Nested m_xpr;
@@ -121,7 +136,8 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
       TensorBlock;
   //===--------------------------------------------------------------------===//
 
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
+                                                        const Device& device)
       : m_impl(op.expression(), device),
         m_reverse(op.reverse()),
         m_device(device)
@@ -149,20 +165,20 @@ struct TensorEvaluator<const TensorReverseOp<ReverseDimensions, ArgType>, Device
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Dimensions& dimensions() const { return m_dimensions; }
 
-  EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE bool evalSubExprsIfNeeded(EvaluatorPointerType) {
     m_impl.evalSubExprsIfNeeded(NULL);
     return true;
   }
 
 #ifdef EIGEN_USE_THREADS
   template <typename EvalSubExprsCallback>
-  EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void evalSubExprsIfNeededAsync(
       EvaluatorPointerType, EvalSubExprsCallback done) {
     m_impl.evalSubExprsIfNeededAsync(nullptr, [done](bool) { done(true); });
   }
 #endif  // EIGEN_USE_THREADS
 
-  EIGEN_STRONG_INLINE void cleanup() {
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE void cleanup() {
     m_impl.cleanup();
   }
 
@@ -425,7 +441,8 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
     CoordAccess = false,  // to be implemented
     RawAccess = false
   };
-  EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op, const Device& device)
+  EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE TensorEvaluator(const XprType& op,
+                                                        const Device& device)
       : Base(op, device) {}
 
   typedef typename XprType::Scalar Scalar;
@@ -436,7 +453,7 @@ struct TensorEvaluator<TensorReverseOp<ReverseDimensions, ArgType>, Device>
   //===- Tensor block evaluation strategy (see TensorBlock.h) -------------===//
   typedef internal::TensorBlockNotImplemented TensorBlock;
   //===--------------------------------------------------------------------===//
-
+  
   EIGEN_DEVICE_FUNC EIGEN_STRONG_INLINE
   const Dimensions& dimensions() const { return this->m_dimensions; }
 

@@ -121,6 +121,8 @@ struct HorovodGlobalState {
 
   bool is_para = false;
 
+  int fake_num = 0;
+
   int fusion_group_num = 0;
 
   // Index of current GPU stream to use

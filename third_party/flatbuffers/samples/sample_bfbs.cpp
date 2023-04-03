@@ -16,7 +16,9 @@
 
 #include "flatbuffers/idl.h"
 #include "flatbuffers/util.h"
-#include "monster_generated.h"  // Already includes "flatbuffers/flatbuffers.h".
+
+#include "monster_test_generated.h"
+#include "monster_generated.h" // Already includes "flatbuffers/flatbuffers.h".
 
 using namespace MyGame::Sample;
 
@@ -29,8 +31,7 @@ int main(int /*argc*/, const char * /*argv*/[]) {
   std::string bfbs_file;
   bool ok =
       flatbuffers::LoadFile("tests/monster_test.fbs", false, &schema_file) &&
-      flatbuffers::LoadFile("tests/monsterdata_test.golden", false,
-                            &json_file) &&
+      flatbuffers::LoadFile("tests/monsterdata_test.golden", false, &json_file) &&
       flatbuffers::LoadFile("tests/monster_test.bfbs", true, &bfbs_file);
   if (!ok) {
     printf("couldn't load files!\n");

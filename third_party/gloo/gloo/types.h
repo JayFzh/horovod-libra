@@ -1,7 +1,3 @@
-/**
- * Copyright (c) Facebook, Inc. and its affiliates.
- */
-
 #pragma once
 
 #include <iostream>
@@ -28,11 +24,6 @@
 #endif
 
 #include "gloo/common/common.h"
-
-#ifdef _WIN32
-#include <BaseTsd.h>
-typedef SSIZE_T ssize_t;
-#endif
 
 namespace gloo {
 
@@ -93,12 +84,10 @@ struct float16;
 float16 cpu_float2half_rn(float f);
 float cpu_half2float(float16 h);
 
-struct alignas(2) float16 {
+struct __attribute__((__aligned__(2))) float16 {
   uint16_t x;
 
   float16() : x(0) {}
-
-  float16(const float16 &) = default;
 
   explicit float16(int val) {
     float16 res = cpu_float2half_rn(static_cast<float>(val));
@@ -106,11 +95,6 @@ struct alignas(2) float16 {
   }
 
   explicit float16(unsigned long val) {
-    float16 res = cpu_float2half_rn(static_cast<float>(val));
-    x = res.x;
-  }
-
-  explicit float16(unsigned long long val) {
     float16 res = cpu_float2half_rn(static_cast<float>(val));
     x = res.x;
   }

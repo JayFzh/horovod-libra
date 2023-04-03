@@ -48,12 +48,12 @@ class TestSimpleTableWithEnum extends Table
     }
 
     /**
-     * @return byte
+     * @return sbyte
      */
     public function getColor()
     {
         $o = $this->__offset(4);
-        return $o != 0 ? $this->bb->getByte($o + $this->bb_pos) : \MyGame\Example\Color::Green;
+        return $o != 0 ? $this->bb->getSbyte($o + $this->bb_pos) : \MyGame\Example\Color::Green;
     }
 
     /**
@@ -79,12 +79,12 @@ class TestSimpleTableWithEnum extends Table
 
     /**
      * @param FlatBufferBuilder $builder
-     * @param byte
+     * @param sbyte
      * @return void
      */
     public static function addColor(FlatBufferBuilder $builder, $color)
     {
-        $builder->addByteX(0, $color, 2);
+        $builder->addSbyteX(0, $color, 2);
     }
 
     /**

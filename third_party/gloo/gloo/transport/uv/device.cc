@@ -17,11 +17,7 @@
 #include <uv.h>
 
 #include <gloo/common/error.h>
-#ifndef _WIN32
 #include <gloo/common/linux.h>
-#else
-#include <gloo/common/win.h>
-#endif
 #include <gloo/common/logging.h>
 #include <gloo/transport/uv/common.h>
 #include <gloo/transport/uv/context.h>
@@ -62,19 +58,11 @@ static bool lookupAddrForIface(struct attr* attr) {
   InterfaceAddresses addresses;
 
   for (auto i = 0; i < addresses.size(); i++) {
-#ifdef _WIN32
-    const auto& address = addresses[i].address;
-#else
     const auto& interface = addresses[i];
     const auto& address = interface.address;
-#endif
 
     // Skip entry if the name doesn't match.
-#ifdef _WIN32
-    if (strcmp(attr->iface.c_str(), addresses[i].name) != 0) {
-#else
     if (strcmp(attr->iface.c_str(), interface.name) != 0) {
-#endif
       continue;
     }
 
@@ -108,10 +96,6 @@ static bool lookupAddrForIface(struct attr* attr) {
 }
 
 static void lookupAddrForHostname(struct attr& attr) {
-#ifdef _WIN32
-  init_winsock();
-#endif
-
   struct addrinfo hints;
   memset(&hints, 0, sizeof(hints));
   hints.ai_family = attr.ai_family;
@@ -128,11 +112,7 @@ static void lookupAddrForHostname(struct attr& attr) {
 
     rv = bind(fd, rp->ai_addr, rp->ai_addrlen);
     if (rv == -1) {
-#ifdef _WIN32
-      closesocket(fd);
-#else
       close(fd);
-#endif
       continue;
     }
 
@@ -141,11 +121,7 @@ static void lookupAddrForHostname(struct attr& attr) {
     attr.ai_protocol = rp->ai_protocol;
     memcpy(&attr.ai_addr, rp->ai_addr, rp->ai_addrlen);
     attr.ai_addrlen = rp->ai_addrlen;
-#ifdef _WIN32
-    closesocket(fd);
-#else
     close(fd);
-#endif
     break;
   }
 
